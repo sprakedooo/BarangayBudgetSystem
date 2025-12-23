@@ -1,0 +1,290 @@
+<UserControl x:Class="BarangayBudgetSystem.App.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:helpers="clr-namespace:BarangayBudgetSystem.App.Helpers"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             Background="{StaticResource BackgroundBrush}">
+
+    <UserControl.Resources>
+        <helpers:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <helpers:MultiValueEqualityConverter x:Key="MultiValueEqualityConverter"/>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Page Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                <TextBlock Text="Settings"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="Configure application settings and manage backups"
+                           FontSize="14"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- General Settings -->
+            <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="General Settings"
+                               Style="{StaticResource CardHeaderStyle}"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                            <StackPanel Style="{StaticResource FormGroupStyle}">
+                                <TextBlock Text="Barangay Name" Style="{StaticResource FormLabelStyle}"/>
+                                <TextBox Text="{Binding BarangayName, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource FormTextBoxStyle}"/>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource FormGroupStyle}">
+                                <TextBlock Text="Municipality" Style="{StaticResource FormLabelStyle}"/>
+                                <TextBox Text="{Binding MunicipalityName, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource FormTextBoxStyle}"/>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource FormGroupStyle}">
+                                <TextBlock Text="Province" Style="{StaticResource FormLabelStyle}"/>
+                                <TextBox Text="{Binding ProvinceName, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource FormTextBoxStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1">
+                            <StackPanel Style="{StaticResource FormGroupStyle}">
+                                <TextBlock Text="Default Fiscal Year" Style="{StaticResource FormLabelStyle}"/>
+                                <TextBox Text="{Binding DefaultFiscalYear, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource FormTextBoxStyle}"/>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource FormGroupStyle}">
+                                <TextBlock Text="Theme" Style="{StaticResource FormLabelStyle}"/>
+                                <ComboBox ItemsSource="{Binding ThemeOptions}"
+                                          SelectedItem="{Binding SelectedTheme}"
+                                          Style="{StaticResource FormComboBoxStyle}"/>
+                            </StackPanel>
+
+                            <CheckBox Content="Enable Auto Backup"
+                                      IsChecked="{Binding AutoBackupEnabled}"
+                                      Margin="0,16,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Sidebar Color Selection -->
+                    <StackPanel Margin="0,16,0,0">
+                        <TextBlock Text="Sidebar Color"
+                                   Style="{StaticResource FormLabelStyle}"
+                                   Margin="0,0,0,8"/>
+
+                        <!-- Preset Colors -->
+                        <TextBlock Text="Preset Colors:"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Margin="0,0,0,6"/>
+                        <ItemsControl ItemsSource="{Binding SidebarColorOptions}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Command="{Binding DataContext.ApplySidebarColorCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip="{Binding Name}"
+                                            Cursor="Hand"
+                                            Margin="0,0,8,8">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="colorBorder"
+                                                        Width="36"
+                                                        Height="36"
+                                                        CornerRadius="4"
+                                                        Background="{Binding ColorBrush}"
+                                                        BorderThickness="2"
+                                                        BorderBrush="Transparent">
+                                                    <Border.Effect>
+                                                        <DropShadowEffect ShadowDepth="1" BlurRadius="3" Opacity="0.3"/>
+                                                    </Border.Effect>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="colorBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                                    </Trigger>
+                                                    <DataTrigger Value="True">
+                                                        <DataTrigger.Binding>
+                                                            <MultiBinding Converter="{StaticResource MultiValueEqualityConverter}">
+                                                                <Binding Path="."/>
+                                                                <Binding Path="DataContext.SelectedSidebarColor" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                            </MultiBinding>
+                                                        </DataTrigger.Binding>
+                                                        <Setter TargetName="colorBorder" Property="BorderBrush" Value="{StaticResource SuccessBrush}"/>
+                                                        <Setter TargetName="colorBorder" Property="BorderThickness" Value="3"/>
+                                                    </DataTrigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Custom Color Picker -->
+                        <TextBlock Text="Custom Color:"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Margin="0,12,0,6"/>
+                        <StackPanel Orientation="Horizontal">
+                            <xctk:ColorPicker SelectedColor="{Binding CustomSidebarColor, Mode=TwoWay}"
+                                              Width="200"
+                                              Height="32"
+                                              DisplayColorAndName="True"
+                                              ShowStandardColors="True"
+                                              UsingAlphaChannel="False"
+                                              ColorMode="ColorCanvas"/>
+                            <Button Content="Apply Custom Color"
+                                    Command="{Binding ApplyCustomColorCommand}"
+                                    Style="{StaticResource OutlineButton}"
+                                    Margin="12,0,0,0"
+                                    VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <TextBlock Text="{Binding SelectedSidebarColor.Name, FallbackValue='Using custom color'}"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Margin="0,8,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                        <Button Content="Save Settings"
+                                Command="{Binding SaveSettingsCommand}"
+                                Style="{StaticResource SuccessButton}"
+                                Margin="0,0,8,0"/>
+                        <Button Content="Export Settings"
+                                Command="{Binding ExportSettingsCommand}"
+                                Style="{StaticResource OutlineButton}"
+                                Margin="0,0,8,0"/>
+                        <Button Content="Import Settings"
+                                Command="{Binding ImportSettingsCommand}"
+                                Style="{StaticResource OutlineButton}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Backup Section -->
+            <Border Grid.Row="2" Style="{StaticResource CardStyle}" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="Backup &amp; Restore"
+                                   Style="{StaticResource CardHeaderStyle}"
+                                   Margin="0"/>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Content="Create Backup"
+                                    Command="{Binding CreateBackupCommand}"
+                                    Style="{StaticResource SuccessButton}"
+                                    Margin="0,0,8,0"/>
+                            <Button Content="Open Folder"
+                                    Command="{Binding OpenBackupFolderCommand}"
+                                    Style="{StaticResource OutlineButton}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Row="1" Style="{StaticResource AlertInfoStyle}" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="Backup includes:"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock Text="- Database (all funds, transactions, reports)"
+                                       Margin="0,4,0,0"/>
+                            <TextBlock Text="- Attachments and uploaded files"/>
+                        </StackPanel>
+                    </Border>
+
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding Backups}"
+                              Style="{StaticResource DataGridStyle}"
+                              MaxHeight="300">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Backup File" Binding="{Binding FileName}" Width="*"/>
+                            <DataGridTextColumn Header="Size" Binding="{Binding FileSizeFormatted}" Width="100"/>
+                            <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, StringFormat='{}{0:MMM dd, yyyy HH:mm}'}" Width="150"/>
+                            <DataGridTemplateColumn Header="Actions" Width="180">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="Restore"
+                                                    Command="{Binding DataContext.RestoreBackupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource SmallButton}"
+                                                    Background="{StaticResource WarningBrush}"
+                                                    Margin="0,0,4,0"/>
+                                            <Button Content="Delete"
+                                                    Command="{Binding DataContext.DeleteBackupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource SmallButton}"
+                                                    Background="{StaticResource DangerBrush}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <!-- About Section -->
+            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock Text="About"
+                               Style="{StaticResource CardHeaderStyle}"/>
+
+                    <TextBlock Text="Barangay Budget System"
+                               FontSize="20"
+                               FontWeight="Bold"/>
+                    <TextBlock Text="Version 1.0.0"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Margin="0,4,0,16"/>
+
+                    <TextBlock TextWrapping="Wrap"
+                               Foreground="{StaticResource TextSecondaryBrush}">
+                        A comprehensive budget management system designed for Philippine barangays.
+                        Features include fund tracking, transaction management, COA-compliant report generation,
+                        and document generation (PR, PO, DV).
+                    </TextBlock>
+
+                    <Border Style="{StaticResource AlertWarningStyle}" Margin="0,16,0,0">
+                        <TextBlock TextWrapping="Wrap">
+                            <Run FontWeight="SemiBold">Important:</Run>
+                            <Run Text=" Please ensure regular backups of your data. The system stores data locally on this computer."/>
+                        </TextBlock>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

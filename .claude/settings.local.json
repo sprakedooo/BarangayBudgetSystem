@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(dotnet build:*)",
+      "Bash(cmd /c \"if exist \"\"%LOCALAPPDATA%\\BarangayBudgetSystem\\budget.db\"\" (echo Database file exists at: %LOCALAPPDATA%\\BarangayBudgetSystem\\budget.db) else (echo Database file does not exist)\")",
+      "Bash(powershell -Command:*)",
+      "Bash(taskkill:*)",
+      "Bash(dotnet restore:*)"
+    ]
+  }
+}

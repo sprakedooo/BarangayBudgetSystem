@@ -1,0 +1,261 @@
+<UserControl x:Class="BarangayBudgetSystem.App.Views.TransactionsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:helpers="clr-namespace:BarangayBudgetSystem.App.Helpers"
+             xmlns:components="clr-namespace:BarangayBudgetSystem.App.Components"
+             Background="{StaticResource BackgroundBrush}">
+
+    <UserControl.Resources>
+        <helpers:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <helpers:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    </UserControl.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Page Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Transactions"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="Manage budget transactions and expenditures"
+                           FontSize="14"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <Button Grid.Column="1"
+                    Content="+ New Transaction"
+                    Command="{Binding NewTransactionCommand}"
+                    Style="{StaticResource PrimaryButton}"
+                    IsEnabled="{Binding IsEditing, Converter={StaticResource InverseBooleanConverter}}"/>
+        </Grid>
+
+        <!-- Filters -->
+        <Border Grid.Row="1" Style="{StaticResource FlatCardStyle}" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                    <TextBlock Text="Status" Style="{StaticResource FormLabelStyle}"/>
+                    <ComboBox ItemsSource="{Binding StatusOptions}"
+                              SelectedItem="{Binding FilterStatus}"
+                              Style="{StaticResource FormComboBoxStyle}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="8,0">
+                    <TextBlock Text="Fund" Style="{StaticResource FormLabelStyle}"/>
+                    <ComboBox ItemsSource="{Binding Funds}"
+                              SelectedValue="{Binding FilterFundId}"
+                              SelectedValuePath="Id"
+                              DisplayMemberPath="FundName"
+                              Style="{StaticResource FormComboBoxStyle}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Margin="8,0">
+                    <TextBlock Text="Start Date" Style="{StaticResource FormLabelStyle}"/>
+                    <DatePicker SelectedDate="{Binding FilterStartDate}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" Margin="8,0">
+                    <TextBlock Text="End Date" Style="{StaticResource FormLabelStyle}"/>
+                    <DatePicker SelectedDate="{Binding FilterEndDate}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="4" Margin="8,0" VerticalAlignment="Bottom">
+                    <TextBox Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource FormTextBoxStyle}"
+                             Width="200"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="8,0,0,0">
+                    <Button Content="Search"
+                            Command="{Binding SearchCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            Margin="0,0,8,0"/>
+                    <Button Content="Clear"
+                            Command="{Binding ClearFiltersCommand}"
+                            Style="{StaticResource SecondaryButton}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Content Area -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Transactions List -->
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               Text="Transaction List"
+                               Style="{StaticResource CardHeaderStyle}"/>
+
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding Transactions}"
+                              SelectedItem="{Binding SelectedTransaction}"
+                              Style="{StaticResource DataGridStyle}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Transaction #" Binding="{Binding TransactionNumber}" Width="120"/>
+                            <DataGridTextColumn Header="Date" Binding="{Binding TransactionDate, StringFormat='{}{0:MMM dd, yyyy}'}" Width="100"/>
+                            <DataGridTextColumn Header="Type" Binding="{Binding TransactionType}" Width="100"/>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*"/>
+                            <DataGridTextColumn Header="Payee" Binding="{Binding Payee}" Width="150"/>
+                            <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat='P{0:N2}'}" Width="120"/>
+                            <DataGridTemplateColumn Header="Status" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <components:StatusTag Status="{Binding Status}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Actions" Width="180">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="Edit"
+                                                    Command="{Binding DataContext.EditTransactionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource SmallButton}"
+                                                    Margin="0,0,4,0"/>
+                                            <Button Content="Submit"
+                                                    Command="{Binding DataContext.SubmitForApprovalCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource SmallButton}"
+                                                    Background="{StaticResource InfoBrush}"
+                                                    Margin="0,0,4,0"/>
+                                            <Button Content="Delete"
+                                                    Command="{Binding DataContext.DeleteTransactionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource SmallButton}"
+                                                    Background="{StaticResource DangerBrush}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <!-- Edit Panel -->
+            <Border Grid.Column="1"
+                    Style="{StaticResource CardStyle}"
+                    Width="400"
+                    Margin="16,0,0,0"
+                    Visibility="{Binding IsEditing, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="{Binding IsNewTransaction, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter='New Transaction|Edit Transaction'}"
+                                   Style="{StaticResource CardHeaderStyle}"/>
+
+                        <StackPanel Style="{StaticResource FormGroupStyle}">
+                            <TextBlock Text="Fund *" Style="{StaticResource FormLabelStyle}"/>
+                            <ComboBox ItemsSource="{Binding Funds}"
+                                      SelectedValue="{Binding EditingTransaction.FundId}"
+                                      SelectedValuePath="Id"
+                                      DisplayMemberPath="FundName"
+                                      Style="{StaticResource FormComboBoxStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FormGroupStyle}">
+                            <TextBlock Text="Transaction Type *" Style="{StaticResource FormLabelStyle}"/>
+                            <ComboBox ItemsSource="{Binding TransactionTypeOptions}"
+                                      SelectedItem="{Binding EditingTransaction.TransactionType}"
+                                      Style="{StaticResource FormComboBoxStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FormGroupStyle}">
+                            <TextBlock Text="Description *" Style="{StaticResource FormLabelStyle}"/>
+                            <TextBox Text="{Binding EditingTransaction.Description, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FormTextBoxStyle}"
+                                     TextWrapping="Wrap"
+                                     AcceptsReturn="True"
+                                     Height="80"/>
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FormGroupStyle}">
+                            <TextBlock Text="Payee" Style="{StaticResource FormLabelStyle}"/>
+                            <TextBox Text="{Binding EditingTransaction.Payee, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FormTextBoxStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FormGroupStyle}">
+                            <TextBlock Text="Amount *" Style="{StaticResource FormLabelStyle}"/>
+                            <TextBox Text="{Binding EditingTransaction.Amount, UpdateSourceTrigger=PropertyChanged, StringFormat='{}{0:N2}'}"
+                                     Style="{StaticResource FormTextBoxStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FormGroupStyle}">
+                            <TextBlock Text="Transaction Date *" Style="{StaticResource FormLabelStyle}"/>
+                            <DatePicker SelectedDate="{Binding EditingTransaction.TransactionDate}"/>
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FormGroupStyle}">
+                            <TextBlock Text="PR Number" Style="{StaticResource FormLabelStyle}"/>
+                            <TextBox Text="{Binding EditingTransaction.PRNumber, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FormTextBoxStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FormGroupStyle}">
+                            <TextBlock Text="PO Number" Style="{StaticResource FormLabelStyle}"/>
+                            <TextBox Text="{Binding EditingTransaction.PONumber, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FormTextBoxStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FormGroupStyle}">
+                            <TextBlock Text="DV Number" Style="{StaticResource FormLabelStyle}"/>
+                            <TextBox Text="{Binding EditingTransaction.DVNumber, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FormTextBoxStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FormGroupStyle}">
+                            <TextBlock Text="Remarks" Style="{StaticResource FormLabelStyle}"/>
+                            <TextBox Text="{Binding EditingTransaction.Remarks, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource FormTextBoxStyle}"
+                                     TextWrapping="Wrap"
+                                     AcceptsReturn="True"
+                                     Height="60"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                            <Button Content="Cancel"
+                                    Command="{Binding CancelEditCommand}"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Margin="0,0,8,0"/>
+                            <Button Content="Save"
+                                    Command="{Binding SaveTransactionCommand}"
+                                    Style="{StaticResource SuccessButton}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

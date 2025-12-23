@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "BarangayBudgetSystem.App": {
+      "commandName": "Project",
+      "dotnetRunMessages": true
+    }
+  }
+}
