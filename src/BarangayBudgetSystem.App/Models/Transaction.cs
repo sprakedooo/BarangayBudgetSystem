@@ -20,6 +20,11 @@ namespace BarangayBudgetSystem.App.Models
         [ForeignKey(nameof(FundId))]
         public virtual AppropriationFund? Fund { get; set; }
 
+        public int? FundParticularId { get; set; }
+
+        [ForeignKey(nameof(FundParticularId))]
+        public virtual FundParticular? FundParticular { get; set; }
+
         [Required]
         [MaxLength(20)]
         public string TransactionType { get; set; } = string.Empty;

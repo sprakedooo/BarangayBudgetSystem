@@ -282,4 +282,36 @@ namespace BarangayBudgetSystem.App.Helpers
             throw new NotImplementedException();
         }
     }
+
+    /// <summary>
+    /// Converter to show/hide action buttons based on transaction status.
+    /// Parameter values: Edit, Submit, Approve, Reject, Delete
+    /// </summary>
+    public class StatusToButtonVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is not string status || parameter is not string action)
+                return Visibility.Collapsed;
+
+            return action.ToLower() switch
+            {
+                // Edit and Submit are available only for Pending transactions
+                "edit" => status == "Pending" ? Visibility.Visible : Visibility.Collapsed,
+                "submit" => status == "Pending" ? Visibility.Visible : Visibility.Collapsed,
+                "delete" => status == "Pending" ? Visibility.Visible : Visibility.Collapsed,
+
+                // Approve and Reject are available only for "For Approval" transactions
+                "approve" => status == "For Approval" ? Visibility.Visible : Visibility.Collapsed,
+                "reject" => status == "For Approval" ? Visibility.Visible : Visibility.Collapsed,
+
+                _ => Visibility.Collapsed
+            };
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

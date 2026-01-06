@@ -8,6 +8,7 @@
     <UserControl.Resources>
         <helpers:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <helpers:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+        <helpers:StatusToButtonVisibilityConverter x:Key="StatusToButtonVisibilityConverter"/>
     </UserControl.Resources>
 
     <Grid Margin="24">
@@ -22,6 +23,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0">
@@ -35,7 +37,26 @@
                            Margin="0,4,0,0"/>
             </StackPanel>
 
-            <Button Grid.Column="1"
+            <!-- Workflow Legend -->
+            <Border Grid.Column="1"
+                    Background="{StaticResource InfoLightBrush}"
+                    CornerRadius="6"
+                    Padding="12,8"
+                    Margin="0,0,16,0"
+                    VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Workflow:" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource InfoBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="Pending" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text=" -> " FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="Submit" FontSize="11" Foreground="{StaticResource InfoBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text=" -> " FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="For Approval" FontSize="11" Foreground="{StaticResource WarningBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text=" -> " FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="Approved" FontSize="11" Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <Button Grid.Column="2"
                     Content="+ New Transaction"
                     Command="{Binding NewTransactionCommand}"
                     Style="{StaticResource PrimaryButton}"
@@ -135,26 +156,53 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Actions" Width="180">
+                            <DataGridTemplateColumn Header="Actions" Width="220">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
+                                            <!-- Edit - Only for Pending -->
                                             <Button Content="Edit"
                                                     Command="{Binding DataContext.EditTransactionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource SmallButton}"
-                                                    Margin="0,0,4,0"/>
+                                                    Margin="0,0,4,0"
+                                                    Visibility="{Binding Status, Converter={StaticResource StatusToButtonVisibilityConverter}, ConverterParameter=Edit}"/>
+
+                                            <!-- Submit - Only for Pending -->
                                             <Button Content="Submit"
                                                     Command="{Binding DataContext.SubmitForApprovalCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource SmallButton}"
                                                     Background="{StaticResource InfoBrush}"
-                                                    Margin="0,0,4,0"/>
-                                            <Button Content="Delete"
+                                                    ToolTip="Submit for Approval"
+                                                    Margin="0,0,4,0"
+                                                    Visibility="{Binding Status, Converter={StaticResource StatusToButtonVisibilityConverter}, ConverterParameter=Submit}"/>
+
+                                            <!-- Approve - Only for For Approval -->
+                                            <Button Content="Approve"
+                                                    Command="{Binding DataContext.ApproveTransactionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource SmallButton}"
+                                                    Background="{StaticResource SuccessBrush}"
+                                                    Margin="0,0,4,0"
+                                                    Visibility="{Binding Status, Converter={StaticResource StatusToButtonVisibilityConverter}, ConverterParameter=Approve}"/>
+
+                                            <!-- Reject - Only for For Approval -->
+                                            <Button Content="Reject"
+                                                    Command="{Binding DataContext.RejectTransactionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource SmallButton}"
+                                                    Background="{StaticResource WarningBrush}"
+                                                    Margin="0,0,4,0"
+                                                    Visibility="{Binding Status, Converter={StaticResource StatusToButtonVisibilityConverter}, ConverterParameter=Reject}"/>
+
+                                            <!-- Delete - Only for Pending -->
+                                            <Button Content="Del"
                                                     Command="{Binding DataContext.DeleteTransactionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource SmallButton}"
-                                                    Background="{StaticResource DangerBrush}"/>
+                                                    Background="{StaticResource DangerBrush}"
+                                                    Visibility="{Binding Status, Converter={StaticResource StatusToButtonVisibilityConverter}, ConverterParameter=Delete}"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>

@@ -1,0 +1,110 @@
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio files
+.vs/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# Build results of an ideaVim plugin
+.idea/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Mono auto generated files
+mono_crash.*
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# VS Code directories
+.vscode/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+*.nuget.props
+*.nuget.targets
+
+# Dotnet
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
+
+# Storage folders (keep structure but ignore contents)
+storage/attachments/**
+!storage/attachments/.gitkeep
+storage/reports/**
+!storage/reports/.gitkeep
+storage/logs/**
+!storage/logs/.gitkeep
+storage/backups/**
+!storage/backups/.gitkeep
+
+# Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+
+# Code coverage
+*.coverage
+*.coveragexml
+coverage/
+
+# NCrunch
+*.ncrunch*
+_NCrunch_*
+.*crunch*.local.xml
+
+# Publish output
+publish/
+
+# Windows Store app package directories
+AppPackages/
+BundleArtifacts/
+
+# Azure Build
+csx/
+*.build.csdef
+
+# Application Insights
+ApplicationInsights.config
+
+# Others
+*.swp
+*~
+.DS_Store

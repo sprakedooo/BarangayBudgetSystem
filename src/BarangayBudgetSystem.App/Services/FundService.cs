@@ -11,6 +11,7 @@ namespace BarangayBudgetSystem.App.Services
 {
     public interface IFundService
     {
+        // Fund operations
         Task<List<AppropriationFund>> GetAllFundsAsync(int? fiscalYear = null);
         Task<AppropriationFund?> GetFundByIdAsync(int id);
         Task<AppropriationFund?> GetFundByCodeAsync(string fundCode);
@@ -23,6 +24,15 @@ namespace BarangayBudgetSystem.App.Services
         Task<List<FundCategorySummary>> GetFundSummaryByCategoryAsync(int fiscalYear);
         Task<List<AppropriationFund>> GetLowBalanceFundsAsync(int fiscalYear, double threshold = 20);
         Task<string> GenerateNextFundCodeAsync(string category, int fiscalYear);
+        Task<AppropriationFund?> GetFundWithParticularsAsync(int fundId);
+
+        // FundParticular operations
+        Task<List<FundParticular>> GetParticularsForFundAsync(int fundId);
+        Task<FundParticular?> GetParticularByIdAsync(int id);
+        Task<FundParticular> CreateParticularAsync(FundParticular particular);
+        Task<FundParticular> UpdateParticularAsync(FundParticular particular);
+        Task<bool> DeleteParticularAsync(int id);
+        Task<string> GenerateNextParticularCodeAsync(int fundId);
     }
 
     public class FundService : IFundService
@@ -154,11 +164,14 @@ namespace BarangayBudgetSystem.App.Services
             var fund = await _context.Funds.FindAsync(fundId);
             if (fund == null) return;
 
-            var utilizedAmount = await _context.Transactions
+            // Load transactions first, then sum client-side (SQLite doesn't support Sum on decimal)
+            var transactions = await _context.Transactions
                 .Where(t => t.FundId == fundId &&
                            t.TransactionType == TransactionTypes.Expenditure &&
                            (t.Status == TransactionStatus.Approved || t.Status == TransactionStatus.Completed))
-                .SumAsync(t => t.Amount);
+                .ToListAsync();
+
+            var utilizedAmount = transactions.Sum(t => t.Amount);
 
             fund.UtilizedAmount = utilizedAmount;
             fund.UpdatedAt = DateTime.Now;
@@ -260,6 +273,124 @@ namespace BarangayBudgetSystem.App.Services
             }
 
             return $"{pattern}{nextNumber:D3}";
+        }
+
+        public async Task<AppropriationFund?> GetFundWithParticularsAsync(int fundId)
+        {
+            return await _context.Funds
+                .Include(f => f.Particulars.Where(p => p.IsActive).OrderBy(p => p.SortOrder))
+                .FirstOrDefaultAsync(f => f.Id == fundId);
+        }
+
+        // FundParticular operations
+        public async Task<List<FundParticular>> GetParticularsForFundAsync(int fundId)
+        {
+            return await _context.FundParticulars
+                .Where(p => p.FundId == fundId && p.IsActive)
+                .OrderBy(p => p.SortOrder)
+                .ThenBy(p => p.ParticularName)
+                .ToListAsync();
+        }
+
+        public async Task<FundParticular?> GetParticularByIdAsync(int id)
+        {
+            return await _context.FundParticulars
+                .Include(p => p.Fund)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+        public async Task<FundParticular> CreateParticularAsync(FundParticular particular)
+        {
+            particular.CreatedAt = DateTime.Now;
+            particular.IsActive = true;
+
+            // Get max sort order and add 1
+            var maxOrder = await _context.FundParticulars
+                .Where(p => p.FundId == particular.FundId)
+                .MaxAsync(p => (int?)p.SortOrder) ?? 0;
+            particular.SortOrder = maxOrder + 1;
+
+            _context.FundParticulars.Add(particular);
+            await _context.SaveChangesAsync();
+
+            _eventBus.Publish(new FundUpdatedEvent
+            {
+                FundId = particular.FundId,
+                UpdateType = UpdateType.Modified
+            });
+
+            return particular;
+        }
+
+        public async Task<FundParticular> UpdateParticularAsync(FundParticular particular)
+        {
+            var existing = await _context.FundParticulars.FindAsync(particular.Id);
+            if (existing == null)
+            {
+                throw new InvalidOperationException($"Particular with ID {particular.Id} not found.");
+            }
+
+            existing.ParticularName = particular.ParticularName;
+            existing.Description = particular.Description;
+            existing.AllocatedAmount = particular.AllocatedAmount;
+            existing.UnitOfMeasure = particular.UnitOfMeasure;
+            existing.Quantity = particular.Quantity;
+            existing.UnitCost = particular.UnitCost;
+            existing.SortOrder = particular.SortOrder;
+            existing.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            _eventBus.Publish(new FundUpdatedEvent
+            {
+                FundId = existing.FundId,
+                UpdateType = UpdateType.Modified
+            });
+
+            return existing;
+        }
+
+        public async Task<bool> DeleteParticularAsync(int id)
+        {
+            var particular = await _context.FundParticulars.FindAsync(id);
+            if (particular == null) return false;
+
+            // Check if particular has transactions
+            var hasTransactions = await _context.Transactions.AnyAsync(t => t.FundParticularId == id);
+            if (hasTransactions)
+            {
+                // Soft delete
+                particular.IsActive = false;
+                particular.UpdatedAt = DateTime.Now;
+            }
+            else
+            {
+                // Hard delete
+                _context.FundParticulars.Remove(particular);
+            }
+
+            await _context.SaveChangesAsync();
+
+            _eventBus.Publish(new FundUpdatedEvent
+            {
+                FundId = particular.FundId,
+                UpdateType = UpdateType.Modified
+            });
+
+            return true;
+        }
+
+        public async Task<string> GenerateNextParticularCodeAsync(int fundId)
+        {
+            var fund = await _context.Funds.FindAsync(fundId);
+            if (fund == null) return "P-001";
+
+            var pattern = $"{fund.FundCode}-P";
+            var count = await _context.FundParticulars
+                .Where(p => p.FundId == fundId)
+                .CountAsync();
+
+            return $"{pattern}{(count + 1):D3}";
         }
     }
 

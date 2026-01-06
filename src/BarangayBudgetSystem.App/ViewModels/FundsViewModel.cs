@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using BarangayBudgetSystem.App.Helpers;
@@ -20,6 +21,13 @@ namespace BarangayBudgetSystem.App.ViewModels
         private int _currentFiscalYear;
         private string? _filterCategory;
 
+        // Particulars
+        private FundParticular? _selectedParticular;
+        private FundParticular _editingParticular = new();
+        private bool _isEditingParticular;
+        private bool _isNewParticular;
+        private bool _showParticularsPanel;
+
         public FundsViewModel(IFundService fundService, IEventBus eventBus)
         {
             _fundService = fundService;
@@ -27,6 +35,7 @@ namespace BarangayBudgetSystem.App.ViewModels
             _currentFiscalYear = DateTime.Now.Year;
 
             Funds = new ObservableCollection<AppropriationFund>();
+            Particulars = new ObservableCollection<FundParticular>();
             CategoryOptions = new ObservableCollection<string>(FundCategories.GetAll());
             FiscalYears = new ObservableCollection<int>();
 
@@ -36,7 +45,7 @@ namespace BarangayBudgetSystem.App.ViewModels
                 FiscalYears.Add(year);
             }
 
-            // Commands
+            // Fund Commands
             LoadFundsCommand = new AsyncRelayCommand(LoadFundsAsync);
             NewFundCommand = new AsyncRelayCommand(NewFundAsync);
             EditFundCommand = new RelayCommand<AppropriationFund>(EditFund);
@@ -44,12 +53,22 @@ namespace BarangayBudgetSystem.App.ViewModels
             CancelEditCommand = new RelayCommand(CancelEdit);
             DeleteFundCommand = new AsyncRelayCommand<AppropriationFund>(DeleteFundAsync);
             ViewTransactionsCommand = new RelayCommand<AppropriationFund>(ViewFundTransactions);
+            ViewParticularsCommand = new AsyncRelayCommand<AppropriationFund>(ViewParticularsAsync);
+
+            // Particular Commands
+            NewParticularCommand = new AsyncRelayCommand(NewParticularAsync);
+            EditParticularCommand = new RelayCommand<FundParticular>(EditParticular);
+            SaveParticularCommand = new AsyncRelayCommand(SaveParticularAsync);
+            CancelParticularEditCommand = new RelayCommand(CancelParticularEdit);
+            DeleteParticularCommand = new AsyncRelayCommand<FundParticular>(DeleteParticularAsync);
+            CloseParticularsCommand = new RelayCommand(CloseParticulars);
 
             // Subscribe to events
             _eventBus.Subscribe<FundUpdatedEvent>(OnFundUpdated);
         }
 
         public ObservableCollection<AppropriationFund> Funds { get; }
+        public ObservableCollection<FundParticular> Particulars { get; }
         public ObservableCollection<string> CategoryOptions { get; }
         public ObservableCollection<int> FiscalYears { get; }
 
@@ -97,6 +116,41 @@ namespace BarangayBudgetSystem.App.ViewModels
             }
         }
 
+        // Particular Properties
+        public FundParticular? SelectedParticular
+        {
+            get => _selectedParticular;
+            set => SetProperty(ref _selectedParticular, value);
+        }
+
+        public FundParticular EditingParticular
+        {
+            get => _editingParticular;
+            set => SetProperty(ref _editingParticular, value);
+        }
+
+        public bool IsEditingParticular
+        {
+            get => _isEditingParticular;
+            set => SetProperty(ref _isEditingParticular, value);
+        }
+
+        public bool IsNewParticular
+        {
+            get => _isNewParticular;
+            set => SetProperty(ref _isNewParticular, value);
+        }
+
+        public bool ShowParticularsPanel
+        {
+            get => _showParticularsPanel;
+            set => SetProperty(ref _showParticularsPanel, value);
+        }
+
+        public decimal TotalParticularsAllocated => Particulars.Sum(p => p.AllocatedAmount);
+        public decimal RemainingToAllocate => (SelectedFund?.AllocatedAmount ?? 0) - TotalParticularsAllocated;
+
+        // Fund Commands
         public ICommand LoadFundsCommand { get; }
         public ICommand NewFundCommand { get; }
         public ICommand EditFundCommand { get; }
@@ -104,6 +158,15 @@ namespace BarangayBudgetSystem.App.ViewModels
         public ICommand CancelEditCommand { get; }
         public ICommand DeleteFundCommand { get; }
         public ICommand ViewTransactionsCommand { get; }
+        public ICommand ViewParticularsCommand { get; }
+
+        // Particular Commands
+        public ICommand NewParticularCommand { get; }
+        public ICommand EditParticularCommand { get; }
+        public ICommand SaveParticularCommand { get; }
+        public ICommand CancelParticularEditCommand { get; }
+        public ICommand DeleteParticularCommand { get; }
+        public ICommand CloseParticularsCommand { get; }
 
         public override async Task InitializeAsync()
         {
@@ -254,6 +317,152 @@ namespace BarangayBudgetSystem.App.ViewModels
                 EditingFund.FundCode = newCode;
                 OnPropertyChanged(nameof(EditingFund));
             }
+        }
+
+        // Particular Methods
+        private async Task ViewParticularsAsync(AppropriationFund? fund)
+        {
+            if (fund == null) return;
+
+            SelectedFund = fund;
+            await LoadParticularsAsync(fund.Id);
+            ShowParticularsPanel = true;
+            IsEditing = false;
+        }
+
+        private async Task LoadParticularsAsync(int fundId)
+        {
+            var particulars = await _fundService.GetParticularsForFundAsync(fundId);
+            Particulars.Clear();
+            foreach (var particular in particulars)
+            {
+                Particulars.Add(particular);
+            }
+            OnPropertyChanged(nameof(TotalParticularsAllocated));
+            OnPropertyChanged(nameof(RemainingToAllocate));
+        }
+
+        private async Task NewParticularAsync()
+        {
+            if (SelectedFund == null) return;
+
+            var nextCode = await _fundService.GenerateNextParticularCodeAsync(SelectedFund.Id);
+
+            EditingParticular = new FundParticular
+            {
+                FundId = SelectedFund.Id,
+                ParticularCode = nextCode,
+                IsActive = true
+            };
+            IsNewParticular = true;
+            IsEditingParticular = true;
+        }
+
+        private void EditParticular(FundParticular? particular)
+        {
+            if (particular == null) return;
+
+            EditingParticular = new FundParticular
+            {
+                Id = particular.Id,
+                FundId = particular.FundId,
+                ParticularCode = particular.ParticularCode,
+                ParticularName = particular.ParticularName,
+                Description = particular.Description,
+                AllocatedAmount = particular.AllocatedAmount,
+                UtilizedAmount = particular.UtilizedAmount,
+                UnitOfMeasure = particular.UnitOfMeasure,
+                Quantity = particular.Quantity,
+                UnitCost = particular.UnitCost,
+                SortOrder = particular.SortOrder,
+                IsActive = particular.IsActive
+            };
+            IsNewParticular = false;
+            IsEditingParticular = true;
+        }
+
+        private async Task SaveParticularAsync()
+        {
+            if (string.IsNullOrWhiteSpace(EditingParticular.ParticularName))
+            {
+                ShowWarning("Please enter a particular name.");
+                return;
+            }
+
+            if (EditingParticular.AllocatedAmount < 0)
+            {
+                ShowWarning("Allocated amount cannot be negative.");
+                return;
+            }
+
+            // Check if allocation exceeds fund amount
+            var currentTotal = Particulars.Sum(p => p.AllocatedAmount);
+            if (!IsNewParticular)
+            {
+                var existingParticular = Particulars.FirstOrDefault(p => p.Id == EditingParticular.Id);
+                if (existingParticular != null)
+                {
+                    currentTotal -= existingParticular.AllocatedAmount;
+                }
+            }
+
+            if (currentTotal + EditingParticular.AllocatedAmount > (SelectedFund?.AllocatedAmount ?? 0))
+            {
+                ShowWarning("Total particulars allocation cannot exceed the fund's allocated amount.");
+                return;
+            }
+
+            await ExecuteAsync(async () =>
+            {
+                if (IsNewParticular)
+                {
+                    await _fundService.CreateParticularAsync(EditingParticular);
+                    ShowMessage("Particular created successfully.");
+                }
+                else
+                {
+                    await _fundService.UpdateParticularAsync(EditingParticular);
+                    ShowMessage("Particular updated successfully.");
+                }
+
+                IsEditingParticular = false;
+                if (SelectedFund != null)
+                {
+                    await LoadParticularsAsync(SelectedFund.Id);
+                }
+            }, "Saving particular...");
+        }
+
+        private void CancelParticularEdit()
+        {
+            IsEditingParticular = false;
+            EditingParticular = new FundParticular();
+        }
+
+        private async Task DeleteParticularAsync(FundParticular? particular)
+        {
+            if (particular == null) return;
+
+            if (!ShowConfirmation($"Are you sure you want to delete '{particular.ParticularName}'?\n\nNote: Particulars with transactions will be deactivated instead of deleted."))
+                return;
+
+            await ExecuteAsync(async () =>
+            {
+                await _fundService.DeleteParticularAsync(particular.Id);
+                ShowMessage("Particular deleted/deactivated successfully.");
+                if (SelectedFund != null)
+                {
+                    await LoadParticularsAsync(SelectedFund.Id);
+                }
+            }, "Deleting particular...");
+        }
+
+        private void CloseParticulars()
+        {
+            ShowParticularsPanel = false;
+            SelectedFund = null;
+            Particulars.Clear();
+            IsEditingParticular = false;
         }
 
         public override void Cleanup()

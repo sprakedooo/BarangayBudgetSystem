@@ -8,6 +8,7 @@ namespace BarangayBudgetSystem.App.Data
     public class AppDbContext : DbContext
     {
         public DbSet<AppropriationFund> Funds { get; set; }
+        public DbSet<FundParticular> FundParticulars { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<Attachment> Attachments { get; set; }
         public DbSet<COAReport> COAReports { get; set; }
@@ -59,6 +60,21 @@ namespace BarangayBudgetSystem.App.Data
                 entity.Property(e => e.UtilizedAmount).HasDefaultValue(0);
             });
 
+            // FundParticular configuration
+            modelBuilder.Entity<FundParticular>(entity =>
+            {
+                entity.HasIndex(e => e.ParticularCode);
+                entity.HasIndex(e => e.FundId);
+
+                entity.Property(e => e.AllocatedAmount).HasDefaultValue(0);
+                entity.Property(e => e.UtilizedAmount).HasDefaultValue(0);
+
+                entity.HasOne(p => p.Fund)
+                    .WithMany(f => f.Particulars)
+                    .HasForeignKey(p => p.FundId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             // Transaction configuration
             modelBuilder.Entity<Transaction>(entity =>
             {
@@ -82,6 +98,11 @@ namespace BarangayBudgetSystem.App.Data
                 entity.HasOne(t => t.ApprovedBy)
                     .WithMany(u => u.ApprovedTransactions)
                     .HasForeignKey(t => t.ApprovedByUserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasOne(t => t.FundParticular)
+                    .WithMany(p => p.Transactions)
+                    .HasForeignKey(t => t.FundParticularId)
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
@@ -145,11 +166,12 @@ namespace BarangayBudgetSystem.App.Data
             var seedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
             // Seed default admin user (password: admin123)
+            // Hash is SHA256("admin123" + "BarangayBudgetSalt2024") encoded as Base64
             modelBuilder.Entity<User>().HasData(new User
             {
                 Id = 1,
                 Username = "admin",
-                PasswordHash = "AQAAAAIAAYagAAAAELqNlJxE8C5KxMJnxqf8DvwSp8VnYwKpq8JKz9qXQSK/tQ==",
+                PasswordHash = "Gy0+zblQw1tLz8G1e2hT8jMKGjFzKz3n5F0BqRd5Bkk=",
                 FirstName = "System",
                 LastName = "Administrator",
                 Role = UserRoles.Administrator,

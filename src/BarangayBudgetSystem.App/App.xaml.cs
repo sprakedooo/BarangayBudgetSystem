@@ -33,7 +33,31 @@ namespace BarangayBudgetSystem.App
             // Apply saved sidebar color
             ApplySavedSidebarColor();
 
-            // Create and show main window
+            // Show login window first
+            ShowLoginWindow();
+        }
+
+        private void ShowLoginWindow()
+        {
+            var loginWindow = _serviceProvider?.GetRequiredService<LoginWindow>();
+            var loginViewModel = _serviceProvider?.GetRequiredService<LoginViewModel>();
+
+            if (loginWindow != null && loginViewModel != null)
+            {
+                loginViewModel.LoginSuccessful += () =>
+                {
+                    loginWindow.Hide();
+                    ShowMainWindow();
+                    loginWindow.Close();
+                };
+
+                loginWindow.DataContext = loginViewModel;
+                loginWindow.Show();
+            }
+        }
+
+        private void ShowMainWindow()
+        {
             var mainWindow = _serviceProvider?.GetRequiredService<MainWindow>();
             if (mainWindow != null)
             {
@@ -86,6 +110,7 @@ namespace BarangayBudgetSystem.App
             services.AddSingleton<IEventBus, EventBus>();
             services.AddSingleton<IDialogHelper, DialogHelper>();
             services.AddSingleton<IAppSettingsService, AppSettingsService>();
+            services.AddSingleton<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IFundService, FundService>();
             services.AddScoped<ITransactionService, TransactionService>();
             services.AddScoped<IReportGenerationService, ReportGenerationService>();
@@ -95,6 +120,7 @@ namespace BarangayBudgetSystem.App
 
             // ViewModels
             services.AddTransient<MainViewModel>();
+            services.AddTransient<LoginViewModel>();
             services.AddTransient<DashboardViewModel>();
             services.AddTransient<TransactionsViewModel>();
             services.AddTransient<FundsViewModel>();
@@ -104,6 +130,7 @@ namespace BarangayBudgetSystem.App
 
             // Views
             services.AddTransient<MainWindow>();
+            services.AddTransient<LoginWindow>();
             services.AddTransient<DashboardView>();
             services.AddTransient<TransactionsView>();
             services.AddTransient<FundsView>();
@@ -141,27 +168,47 @@ namespace BarangayBudgetSystem.App
                     // Try to connect and check if tables exist
                     try
                     {
-                        using var scope = _serviceProvider?.CreateScope();
-                        var context = scope?.ServiceProvider.GetRequiredService<AppDbContext>();
-                        if (context != null)
-                        {
-                            // Try a raw SQL query to check if Funds table exists
-                            var connection = context.Database.GetDbConnection();
-                            connection.Open();
-                            using var command = connection.CreateCommand();
-                            command.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='Funds';";
-                            var result = command.ExecuteScalar();
-                            connection.Close();
+                        // Use a separate connection string directly to avoid EF issues
+                        using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath}");
+                        connection.Open();
 
-                            if (result == null)
+                        // Check for Funds table
+                        using var command = connection.CreateCommand();
+                        command.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='Funds';";
+                        var fundsResult = command.ExecuteScalar();
+
+                        // Check for FundParticulars table
+                        using var command2 = connection.CreateCommand();
+                        command2.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='FundParticulars';";
+                        var particularsResult = command2.ExecuteScalar();
+
+                        // Check for FundParticularId column in Transactions table
+                        using var command3 = connection.CreateCommand();
+                        command3.CommandText = "PRAGMA table_info(Transactions);";
+                        var hasParticularIdColumn = false;
+                        using (var reader = command3.ExecuteReader())
+                        {
+                            while (reader.Read())
                             {
-                                needsRecreate = true;
-                                System.Diagnostics.Debug.WriteLine("Funds table not found. Will recreate database.");
+                                var columnName = reader.GetString(1);
+                                if (columnName == "FundParticularId")
+                                {
+                                    hasParticularIdColumn = true;
+                                    break;
+                                }
                             }
-                            else
-                            {
-                                System.Diagnostics.Debug.WriteLine("Database tables exist.");
-                            }
+                        }
+
+                        connection.Close();
+
+                        if (fundsResult == null || particularsResult == null || !hasParticularIdColumn)
+                        {
+                            needsRecreate = true;
+                            System.Diagnostics.Debug.WriteLine("Required tables/columns not found. Will recreate database.");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("Database schema is up to date.");
                         }
                     }
                     catch (Exception ex)
@@ -172,15 +219,22 @@ namespace BarangayBudgetSystem.App
 
                     if (needsRecreate)
                     {
-                        // Delete the corrupted/empty database file
+                        // Delete the old database file
                         try
                         {
+                            // Close any open connections first
+                            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
                             System.IO.File.Delete(dbPath);
-                            System.Diagnostics.Debug.WriteLine("Deleted old database file.");
+                            System.Diagnostics.Debug.WriteLine("Deleted old database file for schema update.");
                         }
                         catch (Exception ex)
                         {
                             System.Diagnostics.Debug.WriteLine($"Could not delete database file: {ex.Message}");
+                            MessageBox.Show(
+                                $"Please close the application and manually delete the database file at:\n{dbPath}\n\nThen restart the application.",
+                                "Database Update Required",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
                         }
                     }
                 }
@@ -195,6 +249,9 @@ namespace BarangayBudgetSystem.App
                         System.Diagnostics.Debug.WriteLine(created
                             ? "Database created successfully with all tables."
                             : "Database already exists with tables.");
+
+                        // Ensure admin user exists with correct password
+                        EnsureAdminUser(context);
                     }
                 }
             }
@@ -207,6 +264,61 @@ namespace BarangayBudgetSystem.App
                     MessageBoxImage.Error);
 
                 System.Diagnostics.Debug.WriteLine($"Database initialization error: {ex}");
+            }
+        }
+
+        private void EnsureAdminUser(AppDbContext context)
+        {
+            try
+            {
+                // Check if admin user exists
+                var adminExists = context.Users.Any(u => u.Username.ToLower() == "admin");
+                if (!adminExists)
+                {
+                    // Get the authentication service to hash the password
+                    var authService = _serviceProvider?.GetService<IAuthenticationService>();
+                    if (authService != null)
+                    {
+                        var adminUser = new Models.User
+                        {
+                            Username = "admin",
+                            PasswordHash = authService.HashPassword("admin123"),
+                            FirstName = "System",
+                            LastName = "Administrator",
+                            Role = Models.UserRoles.Administrator,
+                            Position = "System Administrator",
+                            IsActive = true,
+                            CreatedAt = DateTime.Now
+                        };
+
+                        context.Users.Add(adminUser);
+                        context.SaveChanges();
+                        System.Diagnostics.Debug.WriteLine("Admin user created successfully.");
+                    }
+                }
+                else
+                {
+                    // Update admin password hash if needed (for existing databases)
+                    var admin = context.Users.FirstOrDefault(u => u.Username.ToLower() == "admin");
+                    if (admin != null)
+                    {
+                        var authService = _serviceProvider?.GetService<IAuthenticationService>();
+                        if (authService != null)
+                        {
+                            var correctHash = authService.HashPassword("admin123");
+                            if (admin.PasswordHash != correctHash)
+                            {
+                                admin.PasswordHash = correctHash;
+                                context.SaveChanges();
+                                System.Diagnostics.Debug.WriteLine("Admin password hash updated.");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error ensuring admin user: {ex.Message}");
             }
         }
     }

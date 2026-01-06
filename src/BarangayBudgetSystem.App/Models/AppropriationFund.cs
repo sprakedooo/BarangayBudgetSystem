@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace BarangayBudgetSystem.App.Models
 {
@@ -49,6 +50,17 @@ namespace BarangayBudgetSystem.App.Models
         public DateTime? UpdatedAt { get; set; }
 
         public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+        public virtual ICollection<FundParticular> Particulars { get; set; } = new List<FundParticular>();
+
+        // Computed properties for totals including particulars
+        [NotMapped]
+        public decimal TotalParticularsAllocated => Particulars?.Sum(p => p.AllocatedAmount) ?? 0;
+
+        [NotMapped]
+        public decimal TotalParticularsUtilized => Particulars?.Sum(p => p.UtilizedAmount) ?? 0;
+
+        [NotMapped]
+        public bool HasParticulars => Particulars != null && Particulars.Count > 0;
     }
 
     public static class FundCategories
