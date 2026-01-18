@@ -15,6 +15,8 @@ namespace BarangayBudgetSystem.App.ViewModels
         private readonly IReportGenerationService _reportService;
         private readonly IDocumentService _documentService;
         private readonly IFileStorageService _fileStorageService;
+        private readonly IComparativeReportExportService _comparativeReportService;
+        private readonly IAppSettingsService _appSettingsService;
         private readonly IEventBus _eventBus;
 
         private COAReport? _selectedReport;
@@ -29,11 +31,15 @@ namespace BarangayBudgetSystem.App.ViewModels
             IReportGenerationService reportService,
             IDocumentService documentService,
             IFileStorageService fileStorageService,
+            IComparativeReportExportService comparativeReportService,
+            IAppSettingsService appSettingsService,
             IEventBus eventBus)
         {
             _reportService = reportService;
             _documentService = documentService;
             _fileStorageService = fileStorageService;
+            _comparativeReportService = comparativeReportService;
+            _appSettingsService = appSettingsService;
             _eventBus = eventBus;
 
             _selectedFiscalYear = DateTime.Now.Year;
@@ -59,6 +65,7 @@ namespace BarangayBudgetSystem.App.ViewModels
             SubmitReportCommand = new AsyncRelayCommand<COAReport>(SubmitReportAsync);
             GenerateBudgetUtilizationCommand = new AsyncRelayCommand(GenerateBudgetUtilizationAsync);
             GenerateCashFlowCommand = new AsyncRelayCommand(GenerateCashFlowAsync);
+            ExportComparativeStatementCommand = new AsyncRelayCommand(ExportComparativeStatementAsync);
 
             // Subscribe to events
             _eventBus.Subscribe<ReportGeneratedEvent>(OnReportGenerated);
@@ -130,6 +137,7 @@ namespace BarangayBudgetSystem.App.ViewModels
         public ICommand SubmitReportCommand { get; }
         public ICommand GenerateBudgetUtilizationCommand { get; }
         public ICommand GenerateCashFlowCommand { get; }
+        public ICommand ExportComparativeStatementCommand { get; }
 
         private void InitializeSelectionLists()
         {
@@ -281,6 +289,33 @@ namespace BarangayBudgetSystem.App.ViewModels
             {
                 CashFlowReport = await _reportService.GenerateCashFlowReportAsync(SelectedFiscalYear);
             }, "Generating cash flow report...");
+        }
+
+        private async Task ExportComparativeStatementAsync()
+        {
+            await ExecuteAsync(async () =>
+            {
+                var outputPath = _fileStorageService.GetReportsFolder();
+                var provinceName = _appSettingsService.Settings.ProvinceName ?? "Sample Province";
+                var barangayName = _appSettingsService.Settings.BarangayName ?? "Sample Barangay";
+                var asOfDate = new DateTime(SelectedFiscalYear, SelectedMonth, 1);
+
+                var filePath = await _comparativeReportService.ExportComparativeStatementAsync(
+                    SelectedFiscalYear,
+                    outputPath,
+                    provinceName,
+                    barangayName,
+                    asOfDate);
+
+                if (ShowConfirmation($"Comparative Statement exported to:\n{filePath}\n\nWould you like to open it?"))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = filePath,
+                        UseShellExecute = true
+                    });
+                }
+            }, "Exporting comparative statement...");
         }
 
         private void OnReportGenerated(ReportGeneratedEvent evt)

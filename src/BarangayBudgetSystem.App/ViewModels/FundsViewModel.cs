@@ -12,6 +12,7 @@ namespace BarangayBudgetSystem.App.ViewModels
     public class FundsViewModel : BaseViewModel
     {
         private readonly IFundService _fundService;
+        private readonly IFiscalYearBudgetService _budgetService;
         private readonly IEventBus _eventBus;
 
         private AppropriationFund? _selectedFund;
@@ -21,6 +22,11 @@ namespace BarangayBudgetSystem.App.ViewModels
         private int _currentFiscalYear;
         private string? _filterCategory;
 
+        // Budget context
+        private FiscalYearBudget? _currentBudget;
+        private bool _hasBudgetSetup;
+        private decimal _totalAllocatedToFunds;
+
         // Particulars
         private FundParticular? _selectedParticular;
         private FundParticular _editingParticular = new();
@@ -28,14 +34,16 @@ namespace BarangayBudgetSystem.App.ViewModels
         private bool _isNewParticular;
         private bool _showParticularsPanel;
 
-        public FundsViewModel(IFundService fundService, IEventBus eventBus)
+        public FundsViewModel(IFundService fundService, IFiscalYearBudgetService budgetService, IEventBus eventBus)
         {
             _fundService = fundService;
+            _budgetService = budgetService;
             _eventBus = eventBus;
             _currentFiscalYear = DateTime.Now.Year;
 
             Funds = new ObservableCollection<AppropriationFund>();
             Particulars = new ObservableCollection<FundParticular>();
+            MandatedAllocations = new ObservableCollection<MandatedAllocationStatus>();
             CategoryOptions = new ObservableCollection<string>(FundCategories.GetAll());
             FiscalYears = new ObservableCollection<int>();
 
@@ -63,14 +71,59 @@ namespace BarangayBudgetSystem.App.ViewModels
             DeleteParticularCommand = new AsyncRelayCommand<FundParticular>(DeleteParticularAsync);
             CloseParticularsCommand = new RelayCommand(CloseParticulars);
 
+            // Navigation Commands
+            GoToBudgetSetupCommand = new RelayCommand(() => _eventBus.Publish(new NavigationEvent { ViewName = "BudgetSetup" }));
+
             // Subscribe to events
             _eventBus.Subscribe<FundUpdatedEvent>(OnFundUpdated);
         }
 
         public ObservableCollection<AppropriationFund> Funds { get; }
         public ObservableCollection<FundParticular> Particulars { get; }
+        public ObservableCollection<MandatedAllocationStatus> MandatedAllocations { get; }
         public ObservableCollection<string> CategoryOptions { get; }
         public ObservableCollection<int> FiscalYears { get; }
+
+        // Budget Context Properties
+        public FiscalYearBudget? CurrentBudget
+        {
+            get => _currentBudget;
+            set
+            {
+                if (SetProperty(ref _currentBudget, value))
+                {
+                    OnPropertyChanged(nameof(TotalBudget));
+                    OnPropertyChanged(nameof(RemainingBudgetToAllocate));
+                    OnPropertyChanged(nameof(BudgetStatusText));
+                }
+            }
+        }
+
+        public bool HasBudgetSetup
+        {
+            get => _hasBudgetSetup;
+            set => SetProperty(ref _hasBudgetSetup, value);
+        }
+
+        public decimal TotalAllocatedToFunds
+        {
+            get => _totalAllocatedToFunds;
+            set
+            {
+                if (SetProperty(ref _totalAllocatedToFunds, value))
+                {
+                    OnPropertyChanged(nameof(RemainingBudgetToAllocate));
+                    OnPropertyChanged(nameof(AllocationPercentage));
+                }
+            }
+        }
+
+        public decimal TotalBudget => CurrentBudget?.TotalBudget ?? 0;
+        public decimal RemainingBudgetToAllocate => TotalBudget - TotalAllocatedToFunds;
+        public double AllocationPercentage => TotalBudget > 0 ? (double)(TotalAllocatedToFunds / TotalBudget) * 100 : 0;
+        public string BudgetStatusText => HasBudgetSetup
+            ? $"FY {CurrentFiscalYear} Budget: P{TotalBudget:N2}"
+            : $"No budget setup for FY {CurrentFiscalYear}";
 
         public AppropriationFund? SelectedFund
         {
@@ -168,6 +221,9 @@ namespace BarangayBudgetSystem.App.ViewModels
         public ICommand DeleteParticularCommand { get; }
         public ICommand CloseParticularsCommand { get; }
 
+        // Navigation Commands
+        public ICommand GoToBudgetSetupCommand { get; }
+
         public override async Task InitializeAsync()
         {
             await LoadFundsAsync();
@@ -177,6 +233,9 @@ namespace BarangayBudgetSystem.App.ViewModels
         {
             await ExecuteAsync(async () =>
             {
+                // Load budget context first
+                await LoadBudgetContextAsync();
+
                 var funds = await _fundService.GetAllFundsAsync(CurrentFiscalYear);
 
                 if (!string.IsNullOrEmpty(FilterCategory))
@@ -189,19 +248,58 @@ namespace BarangayBudgetSystem.App.ViewModels
                 {
                     Funds.Add(fund);
                 }
+
+                // Calculate total allocated to funds
+                TotalAllocatedToFunds = Funds.Sum(f => f.AllocatedAmount);
+
+                // Load mandated allocation status
+                await LoadMandatedAllocationsAsync();
+
             }, "Loading funds...");
+        }
+
+        private async Task LoadBudgetContextAsync()
+        {
+            CurrentBudget = await _budgetService.GetBudgetByYearAsync(CurrentFiscalYear);
+            HasBudgetSetup = CurrentBudget != null;
+        }
+
+        private async Task LoadMandatedAllocationsAsync()
+        {
+            var allocations = await _budgetService.GetMandatedAllocationStatusAsync(CurrentFiscalYear);
+            MandatedAllocations.Clear();
+            foreach (var allocation in allocations)
+            {
+                MandatedAllocations.Add(allocation);
+            }
         }
 
         private async Task NewFundAsync()
         {
+            // Check if budget exists
+            if (!HasBudgetSetup)
+            {
+                var setupBudget = ShowConfirmation(
+                    $"No budget has been set up for FY {CurrentFiscalYear}.\n\n" +
+                    "Would you like to go to Budget Setup first?\n\n" +
+                    "Click 'Yes' to go to Budget Setup, or 'No' to create a fund without budget context.");
+
+                if (setupBudget)
+                {
+                    _eventBus.Publish(new NavigationEvent { ViewName = "BudgetSetup" });
+                    return;
+                }
+            }
+
             var nextCode = await _fundService.GenerateNextFundCodeAsync(
-                FundCategories.GeneralFund, CurrentFiscalYear);
+                FundCategories.PersonnelServices, CurrentFiscalYear);
 
             EditingFund = new AppropriationFund
             {
                 FundCode = nextCode,
                 FiscalYear = CurrentFiscalYear,
-                Category = FundCategories.GeneralFund,
+                FiscalYearBudgetId = CurrentBudget?.Id,
+                Category = FundCategories.PersonnelServices,
                 IsActive = true
             };
             IsNewFund = true;

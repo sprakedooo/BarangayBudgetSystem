@@ -14,6 +14,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -76,8 +77,116 @@
             </Grid>
         </Border>
 
+        <!-- Budget Context Section -->
+        <Grid Grid.Row="2" Margin="0,0,0,16">
+            <!-- No Budget Warning -->
+            <Border Background="#FFF3E0"
+                    BorderBrush="#FF9800"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16"
+                    Visibility="{Binding HasBudgetSetup, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Invert}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="&#x26A0;" FontSize="20" Foreground="#FF9800" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                        <StackPanel>
+                            <TextBlock Text="{Binding BudgetStatusText}"
+                                       FontWeight="SemiBold"
+                                       FontSize="14"/>
+                            <TextBlock Text="Set up the fiscal year budget first to track allocations against your total budget."
+                                       FontSize="12"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Button Grid.Column="1"
+                            Content="Go to Budget Setup"
+                            Command="{Binding GoToBudgetSetupCommand}"
+                            Style="{StaticResource WarningButton}"
+                            VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Budget Summary (when budget exists) -->
+            <Grid Visibility="{Binding HasBudgetSetup, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Total Budget Card -->
+                <Border Grid.Column="0" Style="{StaticResource StatCardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Total Budget" Style="{StaticResource StatLabelStyle}"/>
+                        <TextBlock Text="{Binding TotalBudget, StringFormat='P{0:N0}'}"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource PrimaryBrush}"/>
+                        <TextBlock Text="{Binding CurrentBudget.Status, StringFormat='Status: {0}'}"
+                                   FontSize="11"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Allocated to Funds Card -->
+                <Border Grid.Column="1" Style="{StaticResource StatCardStyle}" Margin="8,0">
+                    <StackPanel>
+                        <TextBlock Text="Allocated to Funds" Style="{StaticResource StatLabelStyle}"/>
+                        <TextBlock Text="{Binding TotalAllocatedToFunds, StringFormat='P{0:N0}'}"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource InfoBrush}"/>
+                        <TextBlock Text="{Binding AllocationPercentage, StringFormat='{}{0:F1}% of budget'}"
+                                   FontSize="11"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Remaining Budget Card -->
+                <Border Grid.Column="2" Style="{StaticResource StatCardStyle}" Margin="8,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Remaining to Allocate" Style="{StaticResource StatLabelStyle}"/>
+                        <TextBlock FontSize="20" FontWeight="Bold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="{Binding RemainingBudgetToAllocate, StringFormat='P{0:N0}'}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RemainingBudgetToAllocate}" Value="0">
+                                            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock Text="Available for new funds"
+                                   FontSize="11"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Budget Setup Link -->
+                <Button Grid.Column="3"
+                        Content="Edit Budget"
+                        Command="{Binding GoToBudgetSetupCommand}"
+                        Style="{StaticResource OutlineButton}"
+                        VerticalAlignment="Center"
+                        Margin="16,0,0,0"/>
+            </Grid>
+        </Grid>
+
         <!-- Content Area -->
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>

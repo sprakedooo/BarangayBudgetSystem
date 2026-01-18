@@ -137,7 +137,11 @@
                             Margin="0,0,8,0"/>
                     <Button Content="Cash Flow Report"
                             Command="{Binding GenerateCashFlowCommand}"
-                            Style="{StaticResource OutlineButton}"/>
+                            Style="{StaticResource OutlineButton}"
+                            Margin="0,0,8,0"/>
+                    <Button Content="Export Comparative Statement (Excel)"
+                            Command="{Binding ExportComparativeStatementCommand}"
+                            Style="{StaticResource SuccessButton}"/>
                 </StackPanel>
             </StackPanel>
         </Border>

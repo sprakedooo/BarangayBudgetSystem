@@ -24,14 +24,9 @@
                 <ColumnDefinition Width="400"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Left Panel - Branding -->
-            <Border Grid.Column="0" CornerRadius="12,0,0,12">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#007bff" Offset="0"/>
-                        <GradientStop Color="#0056b3" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
+            <!-- Left Panel - Branding (uses same colors as main window sidebar) -->
+            <Border Grid.Column="0" CornerRadius="12,0,0,12"
+                    Background="{DynamicResource SidebarGradientBrush}">
 
                 <Grid>
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="40">
@@ -40,7 +35,7 @@
                                 Background="White" Margin="0,0,0,24"
                                 HorizontalAlignment="Center">
                             <TextBlock Text="B" FontSize="48" FontWeight="Bold"
-                                       Foreground="#007bff" HorizontalAlignment="Center"
+                                       Foreground="#2c3e50" HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
                         </Border>
 
@@ -51,7 +46,7 @@
                                    TextAlignment="Center"/>
 
                         <TextBlock Text="Financial Management Solution for Barangay Operations"
-                                   FontSize="14" Foreground="#b3d9ff"
+                                   FontSize="14" Foreground="#a0b0c0"
                                    HorizontalAlignment="Center"
                                    TextAlignment="Center"
                                    Margin="0,12,0,0"
@@ -60,7 +55,7 @@
 
                         <Border Margin="0,40,0,0"
                                 Background="Transparent"
-                                BorderBrush="#4da3ff"
+                                BorderBrush="#4a6278"
                                 BorderThickness="1"
                                 CornerRadius="8"
                                 Padding="20">
@@ -71,20 +66,20 @@
                                            Foreground="White"
                                            Margin="0,0,0,12"/>
                                 <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                    <TextBlock Text="*" Foreground="#66b0ff" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Budget Tracking &amp; Appropriation" Foreground="#e6f2ff" FontSize="13"/>
+                                    <TextBlock Text="*" Foreground="#5dade2" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Budget Tracking &amp; Appropriation" Foreground="#d0dce8" FontSize="13"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                    <TextBlock Text="*" Foreground="#66b0ff" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Transaction Management" Foreground="#e6f2ff" FontSize="13"/>
+                                    <TextBlock Text="*" Foreground="#5dade2" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Transaction Management" Foreground="#d0dce8" FontSize="13"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                    <TextBlock Text="*" Foreground="#66b0ff" Margin="0,0,8,0"/>
-                                    <TextBlock Text="COA-Compliant Reports" Foreground="#e6f2ff" FontSize="13"/>
+                                    <TextBlock Text="*" Foreground="#5dade2" Margin="0,0,8,0"/>
+                                    <TextBlock Text="COA-Compliant Reports" Foreground="#d0dce8" FontSize="13"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                    <TextBlock Text="*" Foreground="#66b0ff" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Annual Investment Plan" Foreground="#e6f2ff" FontSize="13"/>
+                                    <TextBlock Text="*" Foreground="#5dade2" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Annual Investment Plan" Foreground="#d0dce8" FontSize="13"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -92,7 +87,7 @@
 
                     <!-- Version Info -->
                     <TextBlock Text="Version 1.0.0"
-                               Foreground="#80b3ff"
+                               Foreground="#7f8c9a"
                                FontSize="11"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Bottom"
@@ -210,7 +205,7 @@
                             Cursor="Hand">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="Background" Value="#007bff"/>
+                                <Setter Property="Background" Value="#2c3e50"/>
                                 <Setter Property="Foreground" Value="White"/>
                                 <Setter Property="FontSize" Value="15"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
@@ -223,6 +218,9 @@
                                                     CornerRadius="6">
                                                 <Grid>
                                                     <TextBlock Text="Sign In"
+                                                               Foreground="White"
+                                                               FontSize="15"
+                                                               FontWeight="SemiBold"
                                                                HorizontalAlignment="Center"
                                                                VerticalAlignment="Center"
                                                                Visibility="{Binding IsLoggingIn, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}"/>
@@ -230,16 +228,16 @@
                                                                 HorizontalAlignment="Center"
                                                                 VerticalAlignment="Center"
                                                                 Visibility="{Binding IsLoggingIn, Converter={StaticResource BoolToVis}}">
-                                                        <TextBlock Text="Signing in..." Foreground="White"/>
+                                                        <TextBlock Text="Signing in..." Foreground="White" FontSize="15" FontWeight="SemiBold"/>
                                                     </StackPanel>
                                                 </Grid>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="border" Property="Background" Value="#0069d9"/>
+                                                    <Setter TargetName="border" Property="Background" Value="#34495e"/>
                                                 </Trigger>
                                                 <Trigger Property="IsPressed" Value="True">
-                                                    <Setter TargetName="border" Property="Background" Value="#0056b3"/>
+                                                    <Setter TargetName="border" Property="Background" Value="#1a252f"/>
                                                 </Trigger>
                                                 <Trigger Property="IsEnabled" Value="False">
                                                     <Setter TargetName="border" Property="Opacity" Value="0.65"/>

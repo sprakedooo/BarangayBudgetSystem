@@ -14,6 +14,8 @@ namespace BarangayBudgetSystem.App.ViewModels
         private string _loadingMessage = "Loading...";
         private string? _errorMessage;
         private bool _hasError;
+        private string? _successMessage;
+        private bool _hasSuccessMessage;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -43,6 +45,22 @@ namespace BarangayBudgetSystem.App.ViewModels
         {
             get => _hasError;
             private set => SetProperty(ref _hasError, value);
+        }
+
+        public string? SuccessMessage
+        {
+            get => _successMessage;
+            set
+            {
+                SetProperty(ref _successMessage, value);
+                HasSuccessMessage = !string.IsNullOrEmpty(value);
+            }
+        }
+
+        public bool HasSuccessMessage
+        {
+            get => _hasSuccessMessage;
+            private set => SetProperty(ref _hasSuccessMessage, value);
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

@@ -6,7 +6,20 @@
       "Bash(cmd /c \"if exist \"\"%LOCALAPPDATA%\\BarangayBudgetSystem\\budget.db\"\" (echo Database file exists at: %LOCALAPPDATA%\\BarangayBudgetSystem\\budget.db) else (echo Database file does not exist)\")",
       "Bash(powershell -Command:*)",
       "Bash(taskkill:*)",
-      "Bash(dotnet restore:*)"
+      "Bash(dotnet restore:*)",
+      "Bash(echo:*)",
+      "Bash(dotnet script:*)",
+      "Bash(cmd /c \"if exist \"%LOCALAPPDATA%BarangayBudgetSystembudget.db\" \\(echo Database file exists at: %LOCALAPPDATA%\\\\BarangayBudgetSystem\\\\budget.db\\) else \\(echo Database file does not exist\\)\")",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(copy \"C:\\\\Users\\\\jubil\\\\Downloads\\\\COMPARATIVE 2024 \\(1\\).xlsx\" \"C:\\\\Users\\\\jubil\\\\Downloads\\\\comparative_temp.zip\")",
+      "Bash(cmd /c \"copy \"\"C:\\\\Users\\\\jubil\\\\Downloads\\\\COMPARATIVE 2024 \\(1\\).xlsx\"\" \"\"C:\\\\Users\\\\jubil\\\\Downloads\\\\comparative_temp.zip\"\"\")",
+      "Bash(dir \"C:\\\\Users\\\\jubil\\\\Downloads\\\\comparative_temp\" /s /b)",
+      "Bash(cmd /c \"dir /s /b C:\\\\Users\\\\jubil\\\\Downloads\\\\comparative_temp\")",
+      "Bash(\"C:\\\\Users\\\\jubil\\\\AppData\\\\Local\\\\Microsoft\\\\WindowsApps\\\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\\\python.exe\" -c \"import openpyxl; wb = openpyxl.load_workbook\\(r''C:\\\\Users\\\\jubil\\\\Downloads\\\\COMPARATIVE 2024 \\(1\\).xlsx''\\); ws = wb.active; print\\(''Sheet:'', ws.title\\); print\\(''Rows:'', ws.max_row, ''Cols:'', ws.max_column\\); [print\\('' | ''.join\\([str\\(cell.value\\) if cell.value else '''' for cell in row]\\)\\) for row in ws.iter_rows\\(max_row=70\\)]\")",
+      "Bash(\"C:\\\\Users\\\\jubil\\\\AppData\\\\Local\\\\Microsoft\\\\WindowsApps\\\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\\\python.exe\" -c \"import openpyxl; wb = openpyxl.load_workbook\\(r''C:\\\\Users\\\\jubil\\\\Downloads\\\\COMPARATIVE 2024 \\(1\\).xlsx''\\); ws = wb.active; [print\\('' | ''.join\\([str\\(cell.value\\) if cell.value else '''' for cell in row]\\)\\) for row in ws.iter_rows\\(min_row=70, max_row=150\\)]\")",
+      "Bash(\"C:\\\\Users\\\\jubil\\\\AppData\\\\Local\\\\Microsoft\\\\WindowsApps\\\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\\\python.exe\" -c \"import openpyxl; wb = openpyxl.load_workbook\\(r''C:\\\\Users\\\\jubil\\\\Downloads\\\\COMPARATIVE 2024 \\(1\\).xlsx''\\); ws = wb.active; [print\\('' | ''.join\\([str\\(cell.value\\) if cell.value else '''' for cell in row]\\)\\) for row in ws.iter_rows\\(min_row=150, max_row=230\\)]\")",
+      "Bash(\"C:\\\\Users\\\\jubil\\\\AppData\\\\Local\\\\Microsoft\\\\WindowsApps\\\\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\\\\python.exe\" -c \"import openpyxl; wb = openpyxl.load_workbook\\(r''C:\\\\Users\\\\jubil\\\\Downloads\\\\COMPARATIVE 2024 \\(1\\).xlsx''\\); ws = wb.active; [print\\('' | ''.join\\([str\\(cell.value\\) if cell.value else '''' for cell in row]\\)\\) for row in ws.iter_rows\\(min_row=230, max_row=270\\)]\")"
     ]
   }
 }

@@ -25,6 +25,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -63,7 +64,7 @@
             </Grid>
 
             <!-- Loading Indicator -->
-            <Border Grid.Row="0" Grid.RowSpan="6"
+            <Border Grid.Row="0" Grid.RowSpan="7"
                     Background="#80FFFFFF"
                     Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"
                     Panel.ZIndex="100">
@@ -334,8 +335,161 @@
                 </Border>
             </Grid>
 
+            <!-- Budget Compliance Section -->
+            <Border Grid.Row="4" Style="{StaticResource CardStyle}" Margin="0,0,0,24">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                        <TextBlock Text="Mandated Budget Allocations"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"/>
+                        <Border CornerRadius="10"
+                                Padding="8,2"
+                                Margin="12,0,0,0"
+                                VerticalAlignment="Center">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsFullyCompliant}" Value="False">
+                                            <Setter Property="Background" Value="{StaticResource WarningBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <TextBlock Foreground="White"
+                                       FontSize="12"
+                                       FontWeight="Bold">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="COMPLIANT"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsFullyCompliant}" Value="False">
+                                                <Setter Property="Text" Value="{Binding ComplianceIssueCount, StringFormat='{}{0} ISSUES'}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
+                    </StackPanel>
+
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding ComplianceItems}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="8"
+                                        Padding="16"
+                                        Margin="0,0,12,12"
+                                        MinWidth="200">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#E8F5E9"/>
+                                            <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsCompliant}" Value="False">
+                                                    <Setter Property="Background" Value="#FFF3E0"/>
+                                                    <Setter Property="BorderBrush" Value="{StaticResource WarningBrush}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Category Name with Status Icon -->
+                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                                            <TextBlock FontSize="16" Margin="0,0,6,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="&#x2714;"/>
+                                                        <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsCompliant}" Value="False">
+                                                                <Setter Property="Text" Value="&#x26A0;"/>
+                                                                <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding Category}"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="14"/>
+                                        </StackPanel>
+
+                                        <!-- Mandated Percentage -->
+                                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,2,0,0">
+                                            <TextBlock Text="Required:"
+                                                       FontSize="12"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Width="70"/>
+                                            <TextBlock Text="{Binding MandatedPercentage, StringFormat='{}{0}%'}"
+                                                       FontSize="12"
+                                                       FontWeight="Medium"/>
+                                            <TextBlock Text="{Binding RequiredAmount, StringFormat=' (P{0:N0})'}"
+                                                       FontSize="12"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        </StackPanel>
+
+                                        <!-- Actual Allocation -->
+                                        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,2,0,0">
+                                            <TextBlock Text="Allocated:"
+                                                       FontSize="12"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Width="70"/>
+                                            <TextBlock Text="{Binding ActualPercentage, StringFormat='{}{0:F1}%'}"
+                                                       FontSize="12"
+                                                       FontWeight="Medium"/>
+                                            <TextBlock Text="{Binding AllocatedAmount, StringFormat=' (P{0:N0})'}"
+                                                       FontSize="12"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        </StackPanel>
+
+                                        <!-- Variance -->
+                                        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,6,0,0">
+                                            <TextBlock Text="Variance:"
+                                                       FontSize="12"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Width="70"/>
+                                            <TextBlock FontSize="12" FontWeight="SemiBold">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="{Binding Variance, StringFormat='P{0:N0}'}"/>
+                                                        <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsCompliant}" Value="False">
+                                                                <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </Border>
+
             <!-- Bottom Section -->
-            <Grid Grid.Row="4">
+            <Grid Grid.Row="5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>

@@ -27,6 +27,8 @@ namespace BarangayBudgetSystem.App.ViewModels
         private int _pendingApprovals;
         private int _currentFiscalYear;
         private ObservableCollection<int> _fiscalYears;
+        private bool _isFullyCompliant;
+        private int _complianceIssueCount;
 
         public DashboardViewModel(
             IFundService fundService,
@@ -42,6 +44,7 @@ namespace BarangayBudgetSystem.App.ViewModels
             RecentTransactions = new ObservableCollection<Transaction>();
             LowBalanceFunds = new ObservableCollection<AppropriationFund>();
             CategorySummaries = new ObservableCollection<FundCategorySummary>();
+            ComplianceItems = new ObservableCollection<BudgetComplianceItem>();
 
             // Initialize fiscal years (current year +/- 5 years)
             _fiscalYears = new ObservableCollection<int>();
@@ -67,6 +70,7 @@ namespace BarangayBudgetSystem.App.ViewModels
         public ObservableCollection<Transaction> RecentTransactions { get; }
         public ObservableCollection<AppropriationFund> LowBalanceFunds { get; }
         public ObservableCollection<FundCategorySummary> CategorySummaries { get; }
+        public ObservableCollection<BudgetComplianceItem> ComplianceItems { get; }
 
         public decimal TotalBudget
         {
@@ -102,6 +106,18 @@ namespace BarangayBudgetSystem.App.ViewModels
         {
             get => _pendingApprovals;
             set => SetProperty(ref _pendingApprovals, value);
+        }
+
+        public bool IsFullyCompliant
+        {
+            get => _isFullyCompliant;
+            set => SetProperty(ref _isFullyCompliant, value);
+        }
+
+        public int ComplianceIssueCount
+        {
+            get => _complianceIssueCount;
+            set => SetProperty(ref _complianceIssueCount, value);
         }
 
         public ObservableCollection<int> FiscalYears
@@ -209,6 +225,16 @@ namespace BarangayBudgetSystem.App.ViewModels
                 // Load pending approvals count
                 var pendingTransactions = await _transactionService.GetPendingApprovalsAsync();
                 PendingApprovals = pendingTransactions.Count;
+
+                // Load budget compliance
+                var compliance = await _fundService.GetBudgetComplianceAsync(CurrentFiscalYear);
+                ComplianceItems.Clear();
+                foreach (var item in compliance.ComplianceItems)
+                {
+                    ComplianceItems.Add(item);
+                }
+                IsFullyCompliant = compliance.IsFullyCompliant;
+                ComplianceIssueCount = compliance.ComplianceItems.Count(c => !c.IsCompliant);
 
                 // Update charts
                 UpdateBudgetPieChart();

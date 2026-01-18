@@ -21,24 +21,24 @@
     <Color x:Key="InfoColor">#17a2b8</Color>
     <Color x:Key="InfoLightColor">#d1ecf1</Color>
 
-    <!-- Background Colors -->
+    <!-- Light Theme Background Colors (Default) -->
     <Color x:Key="BackgroundColor">#f8f9fa</Color>
     <Color x:Key="CardBackgroundColor">#ffffff</Color>
     <Color x:Key="SidebarBackgroundColor">#343a40</Color>
     <Color x:Key="HeaderBackgroundColor">#ffffff</Color>
 
-    <!-- Text Colors -->
+    <!-- Light Theme Text Colors (Default) -->
     <Color x:Key="TextPrimaryColor">#212529</Color>
     <Color x:Key="TextSecondaryColor">#6c757d</Color>
     <Color x:Key="TextLightColor">#ffffff</Color>
     <Color x:Key="TextMutedColor">#adb5bd</Color>
 
-    <!-- Border Colors -->
+    <!-- Light Theme Border Colors (Default) -->
     <Color x:Key="BorderColor">#dee2e6</Color>
     <Color x:Key="BorderLightColor">#e9ecef</Color>
     <Color x:Key="BorderFocusColor">#80bdff</Color>
 
-    <!-- SolidColorBrushes -->
+    <!-- SolidColorBrushes - Status (constant across themes) -->
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
     <SolidColorBrush x:Key="PrimaryDarkBrush" Color="{StaticResource PrimaryDarkColor}"/>
     <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}"/>
@@ -56,19 +56,34 @@
     <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}"/>
     <SolidColorBrush x:Key="InfoLightBrush" Color="{StaticResource InfoLightColor}"/>
 
-    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
-    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackgroundColor}"/>
-    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{StaticResource SidebarBackgroundColor}"/>
-    <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="{StaticResource HeaderBackgroundColor}"/>
+    <!-- Theme-aware brushes (default Light theme values, will be overridden at runtime) -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="#f8f9fa"/>
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#ffffff"/>
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#343a40"/>
+    <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#ffffff"/>
 
-    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
-    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
-    <SolidColorBrush x:Key="TextLightBrush" Color="{StaticResource TextLightColor}"/>
-    <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#212529"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6c757d"/>
+    <SolidColorBrush x:Key="TextLightBrush" Color="#ffffff"/>
+    <SolidColorBrush x:Key="TextMutedBrush" Color="#adb5bd"/>
 
-    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
-    <SolidColorBrush x:Key="BorderLightBrush" Color="{StaticResource BorderLightColor}"/>
-    <SolidColorBrush x:Key="BorderFocusBrush" Color="{StaticResource BorderFocusColor}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="#dee2e6"/>
+    <SolidColorBrush x:Key="BorderLightBrush" Color="#e9ecef"/>
+    <SolidColorBrush x:Key="BorderFocusBrush" Color="#80bdff"/>
+
+    <!-- Input/Control theme-aware brushes -->
+    <SolidColorBrush x:Key="InputBackgroundBrush" Color="#ffffff"/>
+    <SolidColorBrush x:Key="InputBorderBrush" Color="#dee2e6"/>
+    <SolidColorBrush x:Key="InputTextBrush" Color="#212529"/>
+    <SolidColorBrush x:Key="InputPlaceholderBrush" Color="#6c757d"/>
+
+    <!-- DataGrid theme-aware brushes -->
+    <SolidColorBrush x:Key="DataGridBackgroundBrush" Color="#ffffff"/>
+    <SolidColorBrush x:Key="DataGridAlternateRowBrush" Color="#f8f9fa"/>
+    <SolidColorBrush x:Key="DataGridHeaderBrush" Color="#e9ecef"/>
+    <SolidColorBrush x:Key="DataGridBorderBrush" Color="#dee2e6"/>
+    <SolidColorBrush x:Key="DataGridRowHoverBrush" Color="#e9ecef"/>
+    <SolidColorBrush x:Key="DataGridSelectedRowBrush" Color="#cce5ff"/>
 
     <!-- Fund Category Colors -->
     <Color x:Key="GeneralFundColor">#3498db</Color>

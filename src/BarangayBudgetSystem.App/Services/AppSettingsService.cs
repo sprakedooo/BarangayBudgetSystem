@@ -13,6 +13,7 @@ namespace BarangayBudgetSystem.App.Services
         void LoadSettings();
         void SaveSettings();
         void ApplySidebarColor(string colorHex);
+        void ApplyTheme(string theme);
     }
 
     public class AppSettings
@@ -126,6 +127,141 @@ namespace BarangayBudgetSystem.App.Services
                 System.Diagnostics.Debug.WriteLine($"Failed to apply sidebar color: {ex.Message}");
             }
         }
+
+        public void ApplyTheme(string theme)
+        {
+            try
+            {
+                Settings.SelectedTheme = theme;
+                var isDarkMode = theme == "Dark";
+
+                // Define theme colors
+                var colors = isDarkMode ? GetDarkThemeColors() : GetLightThemeColors();
+
+                // Apply background colors
+                UpdateBrush("BackgroundBrush", colors.Background);
+                UpdateBrush("CardBackgroundBrush", colors.CardBackground);
+                UpdateBrush("HeaderBackgroundBrush", colors.HeaderBackground);
+
+                // Apply text colors
+                UpdateBrush("TextPrimaryBrush", colors.TextPrimary);
+                UpdateBrush("TextSecondaryBrush", colors.TextSecondary);
+                UpdateBrush("TextMutedBrush", colors.TextMuted);
+
+                // Apply border colors
+                UpdateBrush("BorderBrush", colors.Border);
+                UpdateBrush("BorderLightBrush", colors.BorderLight);
+
+                // Apply input colors
+                UpdateBrush("InputBackgroundBrush", colors.InputBackground);
+                UpdateBrush("InputBorderBrush", colors.InputBorder);
+                UpdateBrush("InputTextBrush", colors.InputText);
+                UpdateBrush("InputPlaceholderBrush", colors.InputPlaceholder);
+
+                // Apply DataGrid colors
+                UpdateBrush("DataGridBackgroundBrush", colors.DataGridBackground);
+                UpdateBrush("DataGridAlternateRowBrush", colors.DataGridAlternateRow);
+                UpdateBrush("DataGridHeaderBrush", colors.DataGridHeader);
+                UpdateBrush("DataGridBorderBrush", colors.DataGridBorder);
+                UpdateBrush("DataGridRowHoverBrush", colors.DataGridRowHover);
+                UpdateBrush("DataGridSelectedRowBrush", colors.DataGridSelectedRow);
+
+                SaveSettings();
+
+                // Publish event to notify of theme change
+                _eventBus.Publish(new ThemeChangedEvent { Theme = theme, IsDarkMode = isDarkMode });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to apply theme: {ex.Message}");
+            }
+        }
+
+        private void UpdateBrush(string resourceKey, string colorHex)
+        {
+            if (Application.Current.Resources.Contains(resourceKey))
+            {
+                Application.Current.Resources[resourceKey] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colorHex));
+            }
+        }
+
+        private ThemeColors GetLightThemeColors()
+        {
+            return new ThemeColors
+            {
+                Background = "#f8f9fa",
+                CardBackground = "#ffffff",
+                HeaderBackground = "#ffffff",
+                TextPrimary = "#212529",
+                TextSecondary = "#6c757d",
+                TextMuted = "#adb5bd",
+                Border = "#dee2e6",
+                BorderLight = "#e9ecef",
+                InputBackground = "#ffffff",
+                InputBorder = "#dee2e6",
+                InputText = "#212529",
+                InputPlaceholder = "#6c757d",
+                DataGridBackground = "#ffffff",
+                DataGridAlternateRow = "#f8f9fa",
+                DataGridHeader = "#e9ecef",
+                DataGridBorder = "#dee2e6",
+                DataGridRowHover = "#e9ecef",
+                DataGridSelectedRow = "#cce5ff"
+            };
+        }
+
+        private ThemeColors GetDarkThemeColors()
+        {
+            return new ThemeColors
+            {
+                Background = "#1a1d21",
+                CardBackground = "#2d3238",
+                HeaderBackground = "#2d3238",
+                TextPrimary = "#e9ecef",
+                TextSecondary = "#adb5bd",
+                TextMuted = "#6c757d",
+                Border = "#495057",
+                BorderLight = "#3d4349",
+                InputBackground = "#3d4349",
+                InputBorder = "#495057",
+                InputText = "#e9ecef",
+                InputPlaceholder = "#adb5bd",
+                DataGridBackground = "#2d3238",
+                DataGridAlternateRow = "#343a40",
+                DataGridHeader = "#495057",
+                DataGridBorder = "#495057",
+                DataGridRowHover = "#495057",
+                DataGridSelectedRow = "#3d5a80"
+            };
+        }
+    }
+
+    public class ThemeColors
+    {
+        public string Background { get; set; } = string.Empty;
+        public string CardBackground { get; set; } = string.Empty;
+        public string HeaderBackground { get; set; } = string.Empty;
+        public string TextPrimary { get; set; } = string.Empty;
+        public string TextSecondary { get; set; } = string.Empty;
+        public string TextMuted { get; set; } = string.Empty;
+        public string Border { get; set; } = string.Empty;
+        public string BorderLight { get; set; } = string.Empty;
+        public string InputBackground { get; set; } = string.Empty;
+        public string InputBorder { get; set; } = string.Empty;
+        public string InputText { get; set; } = string.Empty;
+        public string InputPlaceholder { get; set; } = string.Empty;
+        public string DataGridBackground { get; set; } = string.Empty;
+        public string DataGridAlternateRow { get; set; } = string.Empty;
+        public string DataGridHeader { get; set; } = string.Empty;
+        public string DataGridBorder { get; set; } = string.Empty;
+        public string DataGridRowHover { get; set; } = string.Empty;
+        public string DataGridSelectedRow { get; set; } = string.Empty;
+    }
+
+    public class ThemeChangedEvent
+    {
+        public string Theme { get; set; } = string.Empty;
+        public bool IsDarkMode { get; set; }
     }
 
     public class SidebarColorChangedEvent

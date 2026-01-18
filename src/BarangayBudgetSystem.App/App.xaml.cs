@@ -71,14 +71,24 @@ namespace BarangayBudgetSystem.App
             try
             {
                 var settingsService = _serviceProvider?.GetService<IAppSettingsService>();
-                if (settingsService != null && !string.IsNullOrEmpty(settingsService.Settings.SidebarColor))
+                if (settingsService != null)
                 {
-                    settingsService.ApplySidebarColor(settingsService.Settings.SidebarColor);
+                    // Apply saved sidebar color
+                    if (!string.IsNullOrEmpty(settingsService.Settings.SidebarColor))
+                    {
+                        settingsService.ApplySidebarColor(settingsService.Settings.SidebarColor);
+                    }
+
+                    // Apply saved theme (light/dark mode)
+                    if (!string.IsNullOrEmpty(settingsService.Settings.SelectedTheme))
+                    {
+                        settingsService.ApplyTheme(settingsService.Settings.SelectedTheme);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to apply sidebar color: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Failed to apply saved settings: {ex.Message}");
             }
         }
 
@@ -113,25 +123,29 @@ namespace BarangayBudgetSystem.App
             services.AddSingleton<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IFundService, FundService>();
             services.AddScoped<ITransactionService, TransactionService>();
+            services.AddScoped<IFiscalYearBudgetService, FiscalYearBudgetService>();
             services.AddScoped<IReportGenerationService, ReportGenerationService>();
             services.AddScoped<IDocumentService, DocumentService>();
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<IBackupService, BackupService>();
+            services.AddScoped<IComparativeReportExportService, ComparativeReportExportService>();
 
-            // ViewModels
-            services.AddTransient<MainViewModel>();
+            // ViewModels - Scoped so each navigation scope gets fresh instances
+            services.AddSingleton<MainViewModel>(); // Main stays singleton as it manages navigation
             services.AddTransient<LoginViewModel>();
-            services.AddTransient<DashboardViewModel>();
-            services.AddTransient<TransactionsViewModel>();
-            services.AddTransient<FundsViewModel>();
-            services.AddTransient<ReportsViewModel>();
-            services.AddTransient<DocumentsViewModel>();
-            services.AddTransient<SettingsViewModel>();
+            services.AddScoped<DashboardViewModel>();
+            services.AddScoped<BudgetSetupViewModel>();
+            services.AddScoped<TransactionsViewModel>();
+            services.AddScoped<FundsViewModel>();
+            services.AddScoped<ReportsViewModel>();
+            services.AddScoped<DocumentsViewModel>();
+            services.AddScoped<SettingsViewModel>();
 
             // Views
             services.AddTransient<MainWindow>();
             services.AddTransient<LoginWindow>();
             services.AddTransient<DashboardView>();
+            services.AddTransient<BudgetSetupView>();
             services.AddTransient<TransactionsView>();
             services.AddTransient<FundsView>();
             services.AddTransient<ReportsView>();
@@ -182,6 +196,11 @@ namespace BarangayBudgetSystem.App
                         command2.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='FundParticulars';";
                         var particularsResult = command2.ExecuteScalar();
 
+                        // Check for FiscalYearBudgets table
+                        using var command4 = connection.CreateCommand();
+                        command4.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='FiscalYearBudgets';";
+                        var fiscalYearBudgetsResult = command4.ExecuteScalar();
+
                         // Check for FundParticularId column in Transactions table
                         using var command3 = connection.CreateCommand();
                         command3.CommandText = "PRAGMA table_info(Transactions);";
@@ -201,7 +220,7 @@ namespace BarangayBudgetSystem.App
 
                         connection.Close();
 
-                        if (fundsResult == null || particularsResult == null || !hasParticularIdColumn)
+                        if (fundsResult == null || particularsResult == null || fiscalYearBudgetsResult == null || !hasParticularIdColumn)
                         {
                             needsRecreate = true;
                             System.Diagnostics.Debug.WriteLine("Required tables/columns not found. Will recreate database.");

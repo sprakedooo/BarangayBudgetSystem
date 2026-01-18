@@ -284,6 +284,26 @@ namespace BarangayBudgetSystem.App.Helpers
     }
 
     /// <summary>
+    /// Converts boolean (IsEditing) to "Update" or "Save" text for buttons
+    /// </summary>
+    public class BoolToSaveUpdateConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool isEditing)
+            {
+                return isEditing ? "Update Budget" : "Save Budget";
+            }
+            return "Save";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Converter to show/hide action buttons based on transaction status.
     /// Parameter values: Edit, Submit, Approve, Reject, Delete
     /// </summary>

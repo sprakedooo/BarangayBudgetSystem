@@ -39,7 +39,7 @@ namespace BarangayBudgetSystem.App.ViewModels
             _defaultFiscalYear = DateTime.Now.Year;
 
             Backups = new ObservableCollection<BackupInfo>();
-            ThemeOptions = new ObservableCollection<string> { "Light", "Dark", "System" };
+            ThemeOptions = new ObservableCollection<string> { "Light", "Dark" };
 
             // Initialize sidebar color options
             SidebarColorOptions = new ObservableCollection<SidebarColorOption>
@@ -119,7 +119,13 @@ namespace BarangayBudgetSystem.App.ViewModels
         public string? SelectedTheme
         {
             get => _selectedTheme;
-            set => SetProperty(ref _selectedTheme, value);
+            set
+            {
+                if (SetProperty(ref _selectedTheme, value) && value != null)
+                {
+                    _appSettingsService.ApplyTheme(value);
+                }
+            }
         }
 
         public SidebarColorOption? SelectedSidebarColor

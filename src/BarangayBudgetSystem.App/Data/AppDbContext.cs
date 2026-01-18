@@ -7,6 +7,7 @@ namespace BarangayBudgetSystem.App.Data
 {
     public class AppDbContext : DbContext
     {
+        public DbSet<FiscalYearBudget> FiscalYearBudgets { get; set; }
         public DbSet<AppropriationFund> Funds { get; set; }
         public DbSet<FundParticular> FundParticulars { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
@@ -49,6 +50,17 @@ namespace BarangayBudgetSystem.App.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // FiscalYearBudget configuration
+            modelBuilder.Entity<FiscalYearBudget>(entity =>
+            {
+                entity.HasIndex(e => e.FiscalYear).IsUnique();
+                entity.HasIndex(e => e.Status);
+
+                entity.Property(e => e.NTAAmount).HasDefaultValue(0);
+                entity.Property(e => e.EstimatedLocalIncome).HasDefaultValue(0);
+                entity.Property(e => e.OtherIncome).HasDefaultValue(0);
+            });
+
             // AppropriationFund configuration
             modelBuilder.Entity<AppropriationFund>(entity =>
             {
@@ -58,6 +70,11 @@ namespace BarangayBudgetSystem.App.Data
 
                 entity.Property(e => e.AllocatedAmount).HasDefaultValue(0);
                 entity.Property(e => e.UtilizedAmount).HasDefaultValue(0);
+
+                entity.HasOne(f => f.FiscalYearBudget)
+                    .WithMany(b => b.Funds)
+                    .HasForeignKey(f => f.FiscalYearBudgetId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             // FundParticular configuration
@@ -181,16 +198,17 @@ namespace BarangayBudgetSystem.App.Data
             });
 
             // Seed sample appropriation funds for fiscal year 2025
-            // Note: Using fixed year for seed data consistency
+            // Based on Philippine Barangay Budget Structure
+            // Assuming total IRA of P4,000,000 for demonstration
             int fiscalYear = 2025;
             modelBuilder.Entity<AppropriationFund>().HasData(
                 new AppropriationFund
                 {
                     Id = 1,
-                    FundCode = $"GF-{fiscalYear}-001",
-                    FundName = "General Fund - Personnel Services",
-                    Description = "Salaries and wages of barangay officials and employees",
-                    AllocatedAmount = 500000.00m,
+                    FundCode = $"PS-{fiscalYear}-001",
+                    FundName = "Personal Services",
+                    Description = "Salaries, wages, honoraria and benefits of barangay officials and employees",
+                    AllocatedAmount = 1200000.00m,  // 30% of IRA
                     UtilizedAmount = 0,
                     FiscalYear = fiscalYear,
                     Category = FundCategories.PersonnelServices,
@@ -200,10 +218,10 @@ namespace BarangayBudgetSystem.App.Data
                 new AppropriationFund
                 {
                     Id = 2,
-                    FundCode = $"GF-{fiscalYear}-002",
-                    FundName = "General Fund - MOOE",
-                    Description = "Maintenance and Other Operating Expenses",
-                    AllocatedAmount = 300000.00m,
+                    FundCode = $"MOOE-{fiscalYear}-001",
+                    FundName = "Maintenance and Other Operating Expenses",
+                    Description = "Office supplies, utilities, travel, repairs and maintenance",
+                    AllocatedAmount = 800000.00m,  // 20% of IRA
                     UtilizedAmount = 0,
                     FiscalYear = fiscalYear,
                     Category = FundCategories.MOOE,
@@ -213,13 +231,13 @@ namespace BarangayBudgetSystem.App.Data
                 new AppropriationFund
                 {
                     Id = 3,
-                    FundCode = $"SK-{fiscalYear}-001",
-                    FundName = "SK Fund",
-                    Description = "Sangguniang Kabataan Fund for youth programs",
-                    AllocatedAmount = 100000.00m,
+                    FundCode = $"CO-{fiscalYear}-001",
+                    FundName = "Capital Outlay",
+                    Description = "Equipment, furniture, fixtures, and infrastructure projects",
+                    AllocatedAmount = 400000.00m,  // 10% of IRA
                     UtilizedAmount = 0,
                     FiscalYear = fiscalYear,
-                    Category = FundCategories.SKFund,
+                    Category = FundCategories.CapitalOutlay,
                     IsActive = true,
                     CreatedAt = seedDate
                 },
@@ -227,9 +245,9 @@ namespace BarangayBudgetSystem.App.Data
                 {
                     Id = 4,
                     FundCode = $"DEV-{fiscalYear}-001",
-                    FundName = "Barangay Development Fund",
-                    Description = "Fund for barangay infrastructure and development projects",
-                    AllocatedAmount = 750000.00m,
+                    FundName = "20% Development Fund",
+                    Description = "Mandated 20% allocation for development projects (RA 7160)",
+                    AllocatedAmount = 800000.00m,  // 20% of IRA (mandated)
                     UtilizedAmount = 0,
                     FiscalYear = fiscalYear,
                     Category = FundCategories.DevelopmentFund,
@@ -239,26 +257,39 @@ namespace BarangayBudgetSystem.App.Data
                 new AppropriationFund
                 {
                     Id = 5,
-                    FundCode = $"DF-{fiscalYear}-001",
-                    FundName = "Disaster Risk Reduction Fund",
-                    Description = "Fund for disaster preparedness and response",
-                    AllocatedAmount = 200000.00m,
+                    FundCode = $"DRRM-{fiscalYear}-001",
+                    FundName = "5% DRRM Fund",
+                    Description = "Mandated 5% for Disaster Risk Reduction and Management (RA 10121)",
+                    AllocatedAmount = 200000.00m,  // 5% of IRA (mandated)
                     UtilizedAmount = 0,
                     FiscalYear = fiscalYear,
-                    Category = FundCategories.DisasterFund,
+                    Category = FundCategories.DRRMFund,
                     IsActive = true,
                     CreatedAt = seedDate
                 },
                 new AppropriationFund
                 {
                     Id = 6,
-                    FundCode = $"GF-{fiscalYear}-003",
-                    FundName = "General Fund - Capital Outlay",
-                    Description = "Capital expenditures for equipment and infrastructure",
-                    AllocatedAmount = 400000.00m,
+                    FundCode = $"GAD-{fiscalYear}-001",
+                    FundName = "Gender and Development Fund",
+                    Description = "At least 5% for Gender and Development programs (RA 9710)",
+                    AllocatedAmount = 200000.00m,  // 5% of IRA (mandated)
                     UtilizedAmount = 0,
                     FiscalYear = fiscalYear,
-                    Category = FundCategories.CapitalOutlay,
+                    Category = FundCategories.GADFund,
+                    IsActive = true,
+                    CreatedAt = seedDate
+                },
+                new AppropriationFund
+                {
+                    Id = 7,
+                    FundCode = $"SK-{fiscalYear}-001",
+                    FundName = "Sangguniang Kabataan Fund",
+                    Description = "10% allocation for SK programs and youth development (RA 10742)",
+                    AllocatedAmount = 400000.00m,  // 10% of IRA (mandated)
+                    UtilizedAmount = 0,
+                    FiscalYear = fiscalYear,
+                    Category = FundCategories.SKFund,
                     IsActive = true,
                     CreatedAt = seedDate
                 }

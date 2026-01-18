@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Input;
+using Microsoft.Extensions.DependencyInjection;
 using BarangayBudgetSystem.App.Helpers;
 using BarangayBudgetSystem.App.Models;
 
@@ -8,36 +9,27 @@ namespace BarangayBudgetSystem.App.ViewModels
     public class MainViewModel : BaseViewModel
     {
         private readonly IEventBus _eventBus;
+        private readonly IServiceScopeFactory _scopeFactory;
         private BaseViewModel? _currentViewModel;
         private string _currentViewName = "Dashboard";
         private User? _currentUser;
         private string _applicationTitle = "Barangay Budget System";
         private int _currentFiscalYear;
 
+        // Store current scope to dispose when switching views
+        private IServiceScope? _currentScope;
+
         public MainViewModel(
             IEventBus eventBus,
-            DashboardViewModel dashboardViewModel,
-            TransactionsViewModel transactionsViewModel,
-            FundsViewModel fundsViewModel,
-            ReportsViewModel reportsViewModel,
-            DocumentsViewModel documentsViewModel,
-            SettingsViewModel settingsViewModel)
+            IServiceScopeFactory scopeFactory)
         {
             _eventBus = eventBus;
+            _scopeFactory = scopeFactory;
             _currentFiscalYear = DateTime.Now.Year;
-
-            DashboardViewModel = dashboardViewModel;
-            TransactionsViewModel = transactionsViewModel;
-            FundsViewModel = fundsViewModel;
-            ReportsViewModel = reportsViewModel;
-            DocumentsViewModel = documentsViewModel;
-            SettingsViewModel = settingsViewModel;
-
-            // Set default view
-            CurrentViewModel = DashboardViewModel;
 
             // Initialize commands
             NavigateToDashboardCommand = new RelayCommand(() => NavigateTo("Dashboard"));
+            NavigateToBudgetSetupCommand = new RelayCommand(() => NavigateTo("BudgetSetup"));
             NavigateToTransactionsCommand = new RelayCommand(() => NavigateTo("Transactions"));
             NavigateToFundsCommand = new RelayCommand(() => NavigateTo("Funds"));
             NavigateToReportsCommand = new RelayCommand(() => NavigateTo("Reports"));
@@ -47,14 +39,10 @@ namespace BarangayBudgetSystem.App.ViewModels
 
             // Subscribe to navigation events
             _eventBus.Subscribe<NavigationEvent>(OnNavigationRequested);
-        }
 
-        public DashboardViewModel DashboardViewModel { get; }
-        public TransactionsViewModel TransactionsViewModel { get; }
-        public FundsViewModel FundsViewModel { get; }
-        public ReportsViewModel ReportsViewModel { get; }
-        public DocumentsViewModel DocumentsViewModel { get; }
-        public SettingsViewModel SettingsViewModel { get; }
+            // Set default view (will create fresh scope)
+            NavigateTo("Dashboard");
+        }
 
         public BaseViewModel? CurrentViewModel
         {
@@ -105,6 +93,7 @@ namespace BarangayBudgetSystem.App.ViewModels
         }
 
         public ICommand NavigateToDashboardCommand { get; }
+        public ICommand NavigateToBudgetSetupCommand { get; }
         public ICommand NavigateToTransactionsCommand { get; }
         public ICommand NavigateToFundsCommand { get; }
         public ICommand NavigateToReportsCommand { get; }
@@ -113,6 +102,7 @@ namespace BarangayBudgetSystem.App.ViewModels
         public ICommand LogoutCommand { get; }
 
         public bool IsDashboardSelected => CurrentViewName == "Dashboard";
+        public bool IsBudgetSetupSelected => CurrentViewName == "BudgetSetup";
         public bool IsTransactionsSelected => CurrentViewName == "Transactions";
         public bool IsFundsSelected => CurrentViewName == "Funds";
         public bool IsReportsSelected => CurrentViewName == "Reports";
@@ -121,20 +111,30 @@ namespace BarangayBudgetSystem.App.ViewModels
 
         public void NavigateTo(string viewName, object? parameter = null)
         {
+            // Cleanup and dispose the previous scope to release DbContext
+            _currentViewModel?.Cleanup();
+            _currentScope?.Dispose();
+
+            // Create a new scope for this view - this gives fresh DbContext and services
+            _currentScope = _scopeFactory.CreateScope();
+            var provider = _currentScope.ServiceProvider;
+
             CurrentViewName = viewName;
             CurrentViewModel = viewName switch
             {
-                "Dashboard" => DashboardViewModel,
-                "Transactions" => TransactionsViewModel,
-                "Funds" => FundsViewModel,
-                "Reports" => ReportsViewModel,
-                "Documents" => DocumentsViewModel,
-                "Settings" => SettingsViewModel,
-                _ => DashboardViewModel
+                "Dashboard" => provider.GetRequiredService<DashboardViewModel>(),
+                "BudgetSetup" => provider.GetRequiredService<BudgetSetupViewModel>(),
+                "Transactions" => provider.GetRequiredService<TransactionsViewModel>(),
+                "Funds" => provider.GetRequiredService<FundsViewModel>(),
+                "Reports" => provider.GetRequiredService<ReportsViewModel>(),
+                "Documents" => provider.GetRequiredService<DocumentsViewModel>(),
+                "Settings" => provider.GetRequiredService<SettingsViewModel>(),
+                _ => provider.GetRequiredService<DashboardViewModel>()
             };
 
             // Notify view selection changes
             OnPropertyChanged(nameof(IsDashboardSelected));
+            OnPropertyChanged(nameof(IsBudgetSetupSelected));
             OnPropertyChanged(nameof(IsTransactionsSelected));
             OnPropertyChanged(nameof(IsFundsSelected));
             OnPropertyChanged(nameof(IsReportsSelected));
@@ -192,11 +192,14 @@ namespace BarangayBudgetSystem.App.ViewModels
 
         public override async System.Threading.Tasks.Task InitializeAsync()
         {
-            await DashboardViewModel.InitializeAsync();
+            // Already initialized in constructor via NavigateTo
+            await System.Threading.Tasks.Task.CompletedTask;
         }
 
         public override void Cleanup()
         {
+            _currentViewModel?.Cleanup();
+            _currentScope?.Dispose();
             _eventBus.Unsubscribe<NavigationEvent>(OnNavigationRequested);
             base.Cleanup();
         }

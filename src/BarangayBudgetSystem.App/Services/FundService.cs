@@ -33,6 +33,7 @@ namespace BarangayBudgetSystem.App.Services
         Task<FundParticular> UpdateParticularAsync(FundParticular particular);
         Task<bool> DeleteParticularAsync(int id);
         Task<string> GenerateNextParticularCodeAsync(int fundId);
+        Task<BudgetComplianceReport> GetBudgetComplianceAsync(int fiscalYear);
     }
 
     public class FundService : IFundService
@@ -86,6 +87,17 @@ namespace BarangayBudgetSystem.App.Services
         {
             fund.CreatedAt = DateTime.Now;
             fund.IsActive = true;
+
+            // Auto-link to fiscal year budget if exists and not already linked
+            if (!fund.FiscalYearBudgetId.HasValue)
+            {
+                var budget = await _context.FiscalYearBudgets
+                    .FirstOrDefaultAsync(b => b.FiscalYear == fund.FiscalYear);
+                if (budget != null)
+                {
+                    fund.FiscalYearBudgetId = budget.Id;
+                }
+            }
 
             _context.Funds.Add(fund);
             await _context.SaveChangesAsync();
@@ -241,19 +253,7 @@ namespace BarangayBudgetSystem.App.Services
 
         public async Task<string> GenerateNextFundCodeAsync(string category, int fiscalYear)
         {
-            var prefix = category switch
-            {
-                FundCategories.GeneralFund => "GF",
-                FundCategories.SpecialEducationFund => "SEF",
-                FundCategories.TrustFund => "TF",
-                FundCategories.SKFund => "SK",
-                FundCategories.DisasterFund => "DF",
-                FundCategories.DevelopmentFund => "DEV",
-                FundCategories.PersonnelServices => "PS",
-                FundCategories.MOOE => "MOOE",
-                FundCategories.CapitalOutlay => "CO",
-                _ => "OTH"
-            };
+            var prefix = FundCategories.GetCodePrefix(category);
 
             var pattern = $"{prefix}-{fiscalYear}-";
             var lastCode = await _context.Funds
@@ -392,6 +392,50 @@ namespace BarangayBudgetSystem.App.Services
 
             return $"{pattern}{(count + 1):D3}";
         }
+
+        public async Task<BudgetComplianceReport> GetBudgetComplianceAsync(int fiscalYear)
+        {
+            var funds = await _context.Funds
+                .Where(f => f.FiscalYear == fiscalYear && f.IsActive)
+                .ToListAsync();
+
+            var totalBudget = funds.Sum(f => f.AllocatedAmount);
+            var allocations = funds
+                .GroupBy(f => f.Category)
+                .ToDictionary(g => g.Key, g => g.Sum(f => f.AllocatedAmount));
+
+            var complianceItems = new List<BudgetComplianceItem>();
+
+            foreach (var category in FundCategories.GetAIPCategories())
+            {
+                var mandatedPct = FundCategories.GetMandatedPercentage(category);
+                if (mandatedPct > 0)
+                {
+                    var requiredAmount = totalBudget * (decimal)(mandatedPct / 100.0);
+                    var actualAmount = allocations.GetValueOrDefault(category, 0);
+                    var actualPct = totalBudget > 0 ? (double)(actualAmount / totalBudget) * 100 : 0;
+
+                    complianceItems.Add(new BudgetComplianceItem
+                    {
+                        Category = category,
+                        MandatedPercentage = mandatedPct,
+                        RequiredAmount = requiredAmount,
+                        AllocatedAmount = actualAmount,
+                        ActualPercentage = actualPct,
+                        IsCompliant = actualAmount >= requiredAmount,
+                        Variance = actualAmount - requiredAmount
+                    });
+                }
+            }
+
+            return new BudgetComplianceReport
+            {
+                FiscalYear = fiscalYear,
+                TotalBudget = totalBudget,
+                ComplianceItems = complianceItems,
+                IsFullyCompliant = complianceItems.All(c => c.IsCompliant)
+            };
+        }
     }
 
     public class FundSummary
@@ -414,5 +458,24 @@ namespace BarangayBudgetSystem.App.Services
         public double UtilizationPercentage => TotalAllocated > 0
             ? (double)(TotalUtilized / TotalAllocated) * 100
             : 0;
+    }
+
+    public class BudgetComplianceReport
+    {
+        public int FiscalYear { get; set; }
+        public decimal TotalBudget { get; set; }
+        public List<BudgetComplianceItem> ComplianceItems { get; set; } = new();
+        public bool IsFullyCompliant { get; set; }
+    }
+
+    public class BudgetComplianceItem
+    {
+        public string Category { get; set; } = string.Empty;
+        public double MandatedPercentage { get; set; }
+        public decimal RequiredAmount { get; set; }
+        public decimal AllocatedAmount { get; set; }
+        public double ActualPercentage { get; set; }
+        public bool IsCompliant { get; set; }
+        public decimal Variance { get; set; }
     }
 }
