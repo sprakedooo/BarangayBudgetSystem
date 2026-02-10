@@ -182,7 +182,10 @@ namespace BarangayBudgetSystem.App.ViewModels
             DefaultFiscalYear = settings.DefaultFiscalYear;
             AutoBackupEnabled = settings.AutoBackupEnabled;
             BackupRetentionDays = settings.BackupRetentionDays;
-            SelectedTheme = settings.SelectedTheme;
+
+            // Set theme directly without triggering re-apply (already applied at startup)
+            _selectedTheme = settings.SelectedTheme;
+            OnPropertyChanged(nameof(SelectedTheme));
 
             // Find and set the current sidebar color
             bool foundPreset = false;

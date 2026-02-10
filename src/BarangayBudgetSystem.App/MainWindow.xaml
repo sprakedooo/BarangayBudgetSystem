@@ -10,7 +10,7 @@
         MinHeight="600"
         MinWidth="1000"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
 
     <Window.Resources>
         <!-- DataTemplates for Views -->
@@ -225,8 +225,8 @@
 
             <!-- Top Header Bar -->
             <Border Grid.Row="0"
-                    Background="{StaticResource HeaderBackgroundBrush}"
-                    BorderBrush="{StaticResource BorderBrush}"
+                    Background="{DynamicResource HeaderBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="0,0,0,1"
                     Padding="24,12">
                 <Grid>
@@ -240,13 +240,13 @@
                                FontSize="18"
                                FontWeight="SemiBold"
                                VerticalAlignment="Center"
-                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
 
                     <StackPanel Grid.Column="1"
                                 Orientation="Horizontal"
                                 VerticalAlignment="Center">
                         <TextBlock Text="{Binding Source={x:Static System:DateTime.Now}, StringFormat='{}{0:dddd, MMMM dd, yyyy}'}"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    VerticalAlignment="Center"/>
                     </StackPanel>
                 </Grid>

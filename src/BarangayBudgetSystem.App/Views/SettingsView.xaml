@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:helpers="clr-namespace:BarangayBudgetSystem.App.Helpers"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
-             Background="{StaticResource BackgroundBrush}">
+             Background="{DynamicResource BackgroundBrush}">
 
     <UserControl.Resources>
         <helpers:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
@@ -24,10 +24,10 @@
                 <TextBlock Text="Settings"
                            FontSize="28"
                            FontWeight="Bold"
-                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
                 <TextBlock Text="Configure application settings and manage backups"
                            FontSize="14"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            Margin="0,4,0,0"/>
             </StackPanel>
 
@@ -92,7 +92,7 @@
                         <!-- Preset Colors -->
                         <TextBlock Text="Preset Colors:"
                                    FontSize="12"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    Margin="0,0,0,6"/>
                         <ItemsControl ItemsSource="{Binding SidebarColorOptions}">
                             <ItemsControl.ItemsPanel>
@@ -145,7 +145,7 @@
                         <!-- Custom Color Picker -->
                         <TextBlock Text="Custom Color:"
                                    FontSize="12"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    Margin="0,12,0,6"/>
                         <StackPanel Orientation="Horizontal">
                             <xctk:ColorPicker SelectedColor="{Binding CustomSidebarColor, Mode=TwoWay}"
@@ -164,7 +164,7 @@
 
                         <TextBlock Text="{Binding SelectedSidebarColor.Name, FallbackValue='Using custom color'}"
                                    FontSize="12"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    Margin="0,8,0,0"/>
                     </StackPanel>
 
@@ -267,11 +267,11 @@
                                FontSize="20"
                                FontWeight="Bold"/>
                     <TextBlock Text="Version 1.0.0"
-                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
                                Margin="0,4,0,16"/>
 
                     <TextBlock TextWrapping="Wrap"
-                               Foreground="{StaticResource TextSecondaryBrush}">
+                               Foreground="{DynamicResource TextSecondaryBrush}">
                         A comprehensive budget management system designed for Philippine barangays.
                         Features include fund tracking, transaction management, COA-compliant report generation,
                         and document generation (PR, PO, DV).

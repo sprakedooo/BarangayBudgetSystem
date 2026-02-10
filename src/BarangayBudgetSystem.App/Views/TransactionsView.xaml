@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:helpers="clr-namespace:BarangayBudgetSystem.App.Helpers"
              xmlns:components="clr-namespace:BarangayBudgetSystem.App.Components"
-             Background="{StaticResource BackgroundBrush}">
+             Background="{DynamicResource BackgroundBrush}">
 
     <UserControl.Resources>
         <helpers:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
@@ -30,10 +30,10 @@
                 <TextBlock Text="Transactions"
                            FontSize="28"
                            FontWeight="Bold"
-                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
                 <TextBlock Text="Manage budget transactions and expenditures"
                            FontSize="14"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            Margin="0,4,0,0"/>
             </StackPanel>
 
@@ -46,7 +46,7 @@
                     VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="Workflow:" FontWeight="SemiBold" FontSize="11" Foreground="{StaticResource InfoBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <TextBlock Text="Pending" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="Pending" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     <TextBlock Text=" -> " FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
                     <TextBlock Text="Submit" FontSize="11" Foreground="{StaticResource InfoBrush}" VerticalAlignment="Center"/>
                     <TextBlock Text=" -> " FontSize="11" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
@@ -145,9 +145,9 @@
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Transaction #" Binding="{Binding TransactionNumber}" Width="120"/>
                             <DataGridTextColumn Header="Date" Binding="{Binding TransactionDate, StringFormat='{}{0:MMM dd, yyyy}'}" Width="100"/>
-                            <DataGridTextColumn Header="Type" Binding="{Binding TransactionType}" Width="100"/>
+                            <DataGridTextColumn Header="Fund" Binding="{Binding Fund.FundName}" Width="150"/>
+                            <DataGridTextColumn Header="PPA" Binding="{Binding FundParticular.ParticularName}" Width="150"/>
                             <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*"/>
-                            <DataGridTextColumn Header="Payee" Binding="{Binding Payee}" Width="150"/>
                             <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat='P{0:N2}'}" Width="120"/>
                             <DataGridTemplateColumn Header="Status" Width="100">
                                 <DataGridTemplateColumn.CellTemplate>
@@ -226,10 +226,35 @@
                         <StackPanel Style="{StaticResource FormGroupStyle}">
                             <TextBlock Text="Fund *" Style="{StaticResource FormLabelStyle}"/>
                             <ComboBox ItemsSource="{Binding Funds}"
-                                      SelectedValue="{Binding EditingTransaction.FundId}"
-                                      SelectedValuePath="Id"
+                                      SelectedItem="{Binding SelectedEditingFund}"
                                       DisplayMemberPath="FundName"
                                       Style="{StaticResource FormComboBoxStyle}"/>
+                            <!-- Show remaining balance of selected fund -->
+                            <TextBlock Margin="0,4,0,0"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Visibility="{Binding SelectedEditingFund, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Run Text="Available: "/>
+                                <Run Text="{Binding SelectedEditingFund.RemainingBalance, StringFormat='P{0:N2}', Mode=OneWay, FallbackValue=''}"/>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <!-- PPA Selection (only shown when fund has particulars) -->
+                        <StackPanel Style="{StaticResource FormGroupStyle}"
+                                    Visibility="{Binding HasParticulars, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="PPA (Program/Project/Activity)" Style="{StaticResource FormLabelStyle}"/>
+                            <ComboBox ItemsSource="{Binding AvailableParticulars}"
+                                      SelectedItem="{Binding SelectedEditingParticular}"
+                                      DisplayMemberPath="ParticularName"
+                                      Style="{StaticResource FormComboBoxStyle}"/>
+                            <!-- Show remaining balance of selected PPA -->
+                            <TextBlock Margin="0,4,0,0"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Visibility="{Binding SelectedEditingParticular, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Run Text="PPA Available: "/>
+                                <Run Text="{Binding SelectedEditingParticular.RemainingBalance, StringFormat='P{0:N2}', Mode=OneWay, FallbackValue=''}"/>
+                            </TextBlock>
                         </StackPanel>
 
                         <StackPanel Style="{StaticResource FormGroupStyle}">

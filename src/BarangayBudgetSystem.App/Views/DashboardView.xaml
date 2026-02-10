@@ -4,7 +4,7 @@
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
              xmlns:helpers="clr-namespace:BarangayBudgetSystem.App.Helpers"
              xmlns:components="clr-namespace:BarangayBudgetSystem.App.Components"
-             Background="{StaticResource BackgroundBrush}">
+             Background="{DynamicResource BackgroundBrush}">
 
     <UserControl.Resources>
         <helpers:CurrencyConverter x:Key="CurrencyConverter"/>
@@ -40,10 +40,10 @@
                     <TextBlock Text="Dashboard"
                                FontSize="28"
                                FontWeight="Bold"
-                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
                     <TextBlock Text="Overview of your barangay budget system"
                                FontSize="14"
-                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
                                Margin="0,4,0,0"/>
                 </StackPanel>
 
@@ -51,7 +51,7 @@
                     <TextBlock Text="Fiscal Year:"
                                VerticalAlignment="Center"
                                Margin="0,0,8,0"
-                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
                     <ComboBox ItemsSource="{Binding FiscalYears}"
                               SelectedItem="{Binding CurrentFiscalYear}"
                               Width="100"
@@ -65,12 +65,14 @@
 
             <!-- Loading Indicator -->
             <Border Grid.Row="0" Grid.RowSpan="7"
-                    Background="#80FFFFFF"
+                    Background="{DynamicResource BackgroundBrush}"
+                    Opacity="0.9"
                     Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"
                     Panel.ZIndex="100">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <ProgressBar IsIndeterminate="True" Width="200" Height="4"/>
                     <TextBlock Text="{Binding LoadingMessage}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                Margin="0,12,0,0"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -98,7 +100,7 @@
                         </TextBlock>
                         <TextBlock Text="{Binding TotalFunds, StringFormat='{}{0} active funds'}"
                                    FontSize="12"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
@@ -116,7 +118,7 @@
                         </TextBlock>
                         <TextBlock Text="{Binding OverallUtilization, StringFormat='{}{0:F1}% utilized'}"
                                    FontSize="12"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
@@ -133,7 +135,7 @@
                             </TextBlock.Text>
                         </TextBlock>
                         <TextBlock FontSize="12"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    Margin="0,4,0,0">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0:F1}% remaining">
@@ -155,7 +157,7 @@
                                    Foreground="{StaticResource WarningBrush}"/>
                         <TextBlock Text="transactions awaiting"
                                    FontSize="12"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
@@ -193,8 +195,8 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="{StaticResource CardBackgroundBrush}"
-                                        BorderBrush="{StaticResource BorderLightBrush}"
+                                <Border Background="{DynamicResource CardBackgroundBrush}"
+                                        BorderBrush="{DynamicResource BorderLightBrush}"
                                         BorderThickness="1"
                                         CornerRadius="8"
                                         Padding="16"
@@ -227,19 +229,19 @@
                                         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,4,0,0">
                                             <TextBlock Text="Allocated:"
                                                        FontSize="12"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
                                                        Width="70"/>
                                             <TextBlock Text="{Binding TotalAllocated, StringFormat='P{0:N0}'}"
                                                        FontSize="12"
                                                        FontWeight="Medium"
-                                                       Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
                                         </StackPanel>
 
                                         <!-- Spent Amount -->
                                         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,4,0,0">
                                             <TextBlock Text="Spent:"
                                                        FontSize="12"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
                                                        Width="70"/>
                                             <TextBlock Text="{Binding TotalUtilized, StringFormat='P{0:N0}'}"
                                                        FontSize="12"
@@ -251,7 +253,7 @@
                                         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,4,0,0">
                                             <TextBlock Text="Balance:"
                                                        FontSize="12"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
                                                        Width="70"/>
                                             <TextBlock Text="{Binding TotalRemaining, StringFormat='P{0:N0}'}"
                                                        FontSize="12"
@@ -436,35 +438,35 @@
                                         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,2,0,0">
                                             <TextBlock Text="Required:"
                                                        FontSize="12"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
                                                        Width="70"/>
                                             <TextBlock Text="{Binding MandatedPercentage, StringFormat='{}{0}%'}"
                                                        FontSize="12"
                                                        FontWeight="Medium"/>
                                             <TextBlock Text="{Binding RequiredAmount, StringFormat=' (P{0:N0})'}"
                                                        FontSize="12"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         </StackPanel>
 
                                         <!-- Actual Allocation -->
                                         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,2,0,0">
                                             <TextBlock Text="Allocated:"
                                                        FontSize="12"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
                                                        Width="70"/>
                                             <TextBlock Text="{Binding ActualPercentage, StringFormat='{}{0:F1}%'}"
                                                        FontSize="12"
                                                        FontWeight="Medium"/>
                                             <TextBlock Text="{Binding AllocatedAmount, StringFormat=' (P{0:N0})'}"
                                                        FontSize="12"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         </StackPanel>
 
                                         <!-- Variance -->
                                         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,6,0,0">
                                             <TextBlock Text="Variance:"
                                                        FontSize="12"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
                                                        Width="70"/>
                                             <TextBlock FontSize="12" FontWeight="SemiBold">
                                                 <TextBlock.Style>
@@ -524,7 +526,7 @@
                                       MaxHeight="300">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border BorderBrush="{StaticResource BorderLightBrush}"
+                                    <Border BorderBrush="{DynamicResource BorderLightBrush}"
                                             BorderThickness="0,0,0,1"
                                             Padding="0,8">
                                         <Grid>
@@ -539,7 +541,7 @@
                                                            TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Text="{Binding FundCode}"
                                                            FontSize="12"
-                                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="1" HorizontalAlignment="Right">
@@ -549,7 +551,7 @@
                                                            HorizontalAlignment="Right"/>
                                                 <TextBlock Text="{Binding UtilizationPercentage, StringFormat='{}{0:F1}% used'}"
                                                            FontSize="12"
-                                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
                                                            HorizontalAlignment="Right"/>
                                             </StackPanel>
                                         </Grid>
@@ -578,7 +580,7 @@
                                       MaxHeight="300">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border BorderBrush="{StaticResource BorderLightBrush}"
+                                    <Border BorderBrush="{DynamicResource BorderLightBrush}"
                                             BorderThickness="0,0,0,1"
                                             Padding="0,8">
                                         <Grid>
@@ -594,13 +596,13 @@
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="{Binding TransactionNumber}"
                                                                FontSize="12"
-                                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                     <TextBlock Text=" - "
                                                                FontSize="12"
-                                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                     <TextBlock Text="{Binding TransactionDate, StringFormat='{}{0:MMM dd, yyyy}'}"
                                                                FontSize="12"
-                                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                 </StackPanel>
                                             </StackPanel>
 

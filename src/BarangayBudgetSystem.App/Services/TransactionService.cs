@@ -45,6 +45,7 @@ namespace BarangayBudgetSystem.App.Services
         {
             var query = _context.Transactions
                 .Include(t => t.Fund)
+                .Include(t => t.FundParticular)
                 .Include(t => t.CreatedBy)
                 .Include(t => t.ApprovedBy)
                 .AsQueryable();
@@ -89,6 +90,7 @@ namespace BarangayBudgetSystem.App.Services
         {
             return await _context.Transactions
                 .Include(t => t.Fund)
+                .Include(t => t.FundParticular)
                 .Include(t => t.CreatedBy)
                 .Include(t => t.ApprovedBy)
                 .Include(t => t.Attachments)

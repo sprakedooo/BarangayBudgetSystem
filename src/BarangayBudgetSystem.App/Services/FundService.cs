@@ -12,7 +12,7 @@ namespace BarangayBudgetSystem.App.Services
     public interface IFundService
     {
         // Fund operations
-        Task<List<AppropriationFund>> GetAllFundsAsync(int? fiscalYear = null);
+        Task<List<AppropriationFund>> GetAllFundsAsync(int? fiscalYear = null, bool includeParticulars = false);
         Task<AppropriationFund?> GetFundByIdAsync(int id);
         Task<AppropriationFund?> GetFundByCodeAsync(string fundCode);
         Task<List<AppropriationFund>> GetFundsByCategoryAsync(string category, int fiscalYear);
@@ -47,9 +47,14 @@ namespace BarangayBudgetSystem.App.Services
             _eventBus = eventBus;
         }
 
-        public async Task<List<AppropriationFund>> GetAllFundsAsync(int? fiscalYear = null)
+        public async Task<List<AppropriationFund>> GetAllFundsAsync(int? fiscalYear = null, bool includeParticulars = false)
         {
             var query = _context.Funds.Where(f => f.IsActive);
+
+            if (includeParticulars)
+            {
+                query = query.Include(f => f.Particulars.Where(p => p.IsActive).OrderBy(p => p.SortOrder));
+            }
 
             if (fiscalYear.HasValue)
             {

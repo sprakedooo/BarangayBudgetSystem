@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:helpers="clr-namespace:BarangayBudgetSystem.App.Helpers"
              xmlns:components="clr-namespace:BarangayBudgetSystem.App.Components"
-             Background="{StaticResource BackgroundBrush}">
+             Background="{DynamicResource BackgroundBrush}">
 
     <UserControl.Resources>
         <helpers:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
@@ -23,10 +23,10 @@
                 <TextBlock Text="Reports"
                            FontSize="28"
                            FontWeight="Bold"
-                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
                 <TextBlock Text="Generate and manage COA compliance reports"
                            FontSize="14"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            Margin="0,4,0,0"/>
             </StackPanel>
         </Grid>
@@ -257,25 +257,25 @@
                             </Grid.RowDefinitions>
 
                             <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,12">
-                                <TextBlock Text="Total Appropriation" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="Total Appropriation" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <TextBlock Text="{Binding SelectedReport.TotalAppropriation, StringFormat='P{0:N2}'}"
                                            FontWeight="SemiBold"/>
                             </StackPanel>
 
                             <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,12">
-                                <TextBlock Text="Total Obligations" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="Total Obligations" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <TextBlock Text="{Binding SelectedReport.TotalObligations, StringFormat='P{0:N2}'}"
                                            FontWeight="SemiBold"/>
                             </StackPanel>
 
                             <StackPanel Grid.Row="1" Grid.Column="0">
-                                <TextBlock Text="Total Disbursements" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="Total Disbursements" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <TextBlock Text="{Binding SelectedReport.TotalDisbursements, StringFormat='P{0:N2}'}"
                                            FontWeight="SemiBold"/>
                             </StackPanel>
 
                             <StackPanel Grid.Row="1" Grid.Column="1">
-                                <TextBlock Text="Unobligated Balance" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="Unobligated Balance" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <TextBlock Text="{Binding SelectedReport.UnobligatedBalance, StringFormat='P{0:N2}'}"
                                            FontWeight="SemiBold"
                                            Foreground="{StaticResource SuccessBrush}"/>

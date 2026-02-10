@@ -24,6 +24,8 @@ namespace BarangayBudgetSystem.App.ViewModels
         private DateTime? _filterStartDate;
         private DateTime? _filterEndDate;
         private string? _searchTerm;
+        private AppropriationFund? _selectedEditingFund;
+        private FundParticular? _selectedEditingParticular;
 
         public TransactionsViewModel(
             ITransactionService transactionService,
@@ -36,6 +38,7 @@ namespace BarangayBudgetSystem.App.ViewModels
 
             Transactions = new ObservableCollection<Transaction>();
             Funds = new ObservableCollection<AppropriationFund>();
+            AvailableParticulars = new ObservableCollection<FundParticular>();
             StatusOptions = new ObservableCollection<string>(TransactionStatus.GetAll());
             TransactionTypeOptions = new ObservableCollection<string>(TransactionTypes.GetAll());
 
@@ -58,6 +61,7 @@ namespace BarangayBudgetSystem.App.ViewModels
 
         public ObservableCollection<Transaction> Transactions { get; }
         public ObservableCollection<AppropriationFund> Funds { get; }
+        public ObservableCollection<FundParticular> AvailableParticulars { get; }
         public ObservableCollection<string> StatusOptions { get; }
         public ObservableCollection<string> TransactionTypeOptions { get; }
 
@@ -131,6 +135,36 @@ namespace BarangayBudgetSystem.App.ViewModels
             set => SetProperty(ref _searchTerm, value);
         }
 
+        public AppropriationFund? SelectedEditingFund
+        {
+            get => _selectedEditingFund;
+            set
+            {
+                if (SetProperty(ref _selectedEditingFund, value))
+                {
+                    UpdateAvailableParticulars();
+                    if (value != null)
+                    {
+                        EditingTransaction.FundId = value.Id;
+                    }
+                }
+            }
+        }
+
+        public FundParticular? SelectedEditingParticular
+        {
+            get => _selectedEditingParticular;
+            set
+            {
+                if (SetProperty(ref _selectedEditingParticular, value))
+                {
+                    EditingTransaction.FundParticularId = value?.Id;
+                }
+            }
+        }
+
+        public bool HasParticulars => AvailableParticulars.Count > 0;
+
         public ICommand LoadTransactionsCommand { get; }
         public ICommand NewTransactionCommand { get; }
         public ICommand EditTransactionCommand { get; }
@@ -151,12 +185,28 @@ namespace BarangayBudgetSystem.App.ViewModels
 
         private async Task LoadFundsAsync()
         {
-            var funds = await _fundService.GetAllFundsAsync(DateTime.Now.Year);
+            var funds = await _fundService.GetAllFundsAsync(DateTime.Now.Year, includeParticulars: true);
             Funds.Clear();
             foreach (var fund in funds)
             {
                 Funds.Add(fund);
             }
+        }
+
+        private void UpdateAvailableParticulars()
+        {
+            AvailableParticulars.Clear();
+            SelectedEditingParticular = null;
+
+            if (_selectedEditingFund?.Particulars != null)
+            {
+                foreach (var particular in _selectedEditingFund.Particulars.Where(p => p.IsActive).OrderBy(p => p.SortOrder))
+                {
+                    AvailableParticulars.Add(particular);
+                }
+            }
+
+            OnPropertyChanged(nameof(HasParticulars));
         }
 
         private async Task LoadTransactionsAsync()
@@ -189,6 +239,8 @@ namespace BarangayBudgetSystem.App.ViewModels
                 TransactionType = TransactionTypes.Expenditure,
                 Status = TransactionStatus.Pending
             };
+            SelectedEditingFund = null;
+            SelectedEditingParticular = null;
             IsNewTransaction = true;
             IsEditing = true;
         }
@@ -208,6 +260,7 @@ namespace BarangayBudgetSystem.App.ViewModels
                 Id = transaction.Id,
                 TransactionNumber = transaction.TransactionNumber,
                 FundId = transaction.FundId,
+                FundParticularId = transaction.FundParticularId,
                 TransactionType = transaction.TransactionType,
                 Description = transaction.Description,
                 Payee = transaction.Payee,
@@ -221,6 +274,16 @@ namespace BarangayBudgetSystem.App.ViewModels
                 Remarks = transaction.Remarks,
                 Status = transaction.Status
             };
+
+            // Set the selected fund (this will trigger loading of particulars)
+            SelectedEditingFund = Funds.FirstOrDefault(f => f.Id == transaction.FundId);
+
+            // After particulars are loaded, set the selected particular
+            if (transaction.FundParticularId.HasValue)
+            {
+                SelectedEditingParticular = AvailableParticulars.FirstOrDefault(p => p.Id == transaction.FundParticularId.Value);
+            }
+
             IsNewTransaction = false;
             IsEditing = true;
         }
